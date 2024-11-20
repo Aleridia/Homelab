@@ -1,0 +1,5 @@
+nodes: 
+  hosts: 
+    node_01:
+      # ansible_host: "{{ lookup('env', 'NODE_01') }}"
+      ansible_host: #TODO PUT VAR ENV
