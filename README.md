@@ -15,3 +15,7 @@ It's here to help new people and get some review about architecture or software 
 | 3 Kubernetes| ✅          | ✅     | ✅            | ❌          |
 | 4 Domotics  | ✅          | ❌     | ❌            | ✅          |
 
+
+## Ansible
+`ansible-playbook -i inventory.yml playbook.yaml -K`
+Enter the sudo password for the managed nodes
