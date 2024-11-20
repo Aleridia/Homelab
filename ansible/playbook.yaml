@@ -1,0 +1,17 @@
+- name: Setup config
+  hosts: nodes
+  tasks:
+    - name: Install auto-update
+      become: true
+      ansible.builtin.apt:
+        name: unattended-upgrades
+        update_cache: yes
+        state: latest
+    - name: Configure auto-update
+      become: true
+      ansible.builtin.copy:
+        src: resources/20auto-upgrades
+        dest: /etc/apt/apt.conf.d/20auto-upgrades
+        owner: root
+        group: root
+        mode: '0644'
