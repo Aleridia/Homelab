@@ -1,5 +1,14 @@
 nodes: 
   hosts: 
     node_01:
-      # ansible_host: "{{ lookup('env', 'NODE_01') }}"
-      ansible_host: #TODO PUT VAR ENV
+      ansible_host: "{{ lookup('env', 'NODE_01') }}"
+      ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+    node_02:
+      ansible_host: "{{ lookup('env', 'NODE_02') }}"
+      ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+    node_03:
+      ansible_host: "{{ lookup('env', 'NODE_03') }}"
+      ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+    node_04:
+      ansible_host: "{{ lookup('env', 'NODE_04') }}"
+      ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
