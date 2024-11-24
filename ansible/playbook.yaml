@@ -1,5 +1,17 @@
 - name: Setup config
   hosts: nodes
+  become: true
+
+  roles:
+    # SSH Hardening
+    - devsec.hardening.ssh_hardening
+    #OS Hardening playbook
+    - devsec.hardening.os_hardening
+  vars:
+    sysctl_overwrite:
+      # Enable IPv4 traffic forwarding. Used for docker/kube
+      net.ipv4.ip_forward: 1
+
   tasks:
     - name: Install auto-update
       become: true
