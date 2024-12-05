@@ -35,9 +35,21 @@ Then run the playbook :
 `ansible-playbook -i inventory.yml playbook.yaml -K`
 Enter the ansible user password for the managed nodes.
 
+## Rancher
+Optiplex-3060-1,2 & 3 are the server nodes.
+Optiplex-3061-4 is the single worker node.
+
+Why 3 server nodes ?
+- If I have only one and it crashes my cluster is fully down
+- Number of server ndes need to be odd, because of the [quorum](ttps://medium.com/@osmarrod18/decoding-quorum-in-kubernetes-a-journey-of-learning-4e5de1d30e2d)
+
+
 ## Hardware
 - Nas : DS218+, 17.2W, 2x 3.6TO RAID 1
 - UDM pro : 33W
+- Switch Tenda SG108
+- Tenda PoE Injector 48V, IEEE802.3at
+- Wifi : Ubiquiti U6 Long-Range
 - Raspberry pi 4
 - Ubiquiti U6-LR
 - x4 Dell optiplex 3060 i5 8500T 8go DDR4 2666mhz, m2 256go
