@@ -1,0 +1,42 @@
+#Doc : https://docs.rke2.io/install/quickstart
+- name: Install RKE2
+  become: true
+  hosts: server_nodes
+  tasks:
+    - name: Script install
+      ansible.builtin.shell: 
+    - name: Enable RKE2 service
+      ansible.builtin.systemd_service:
+        name: rke2-server
+        enabled: true
+        masked: no
+    - name: Start RKE2 service
+      ansible.builtin.systemd_service:
+        name: rke2-server
+        state: started
+    - name: Symlink kubectl
+      ansible.builtin.shell: ln -s $(find /var/lib/rancher/rke2/data/ -name kubectl) /usr/local/bin/kubectl
+    - name: export kubeconfig
+      ansible.builtin.shell: export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+
+#Doc : https://ranchermanager.docs.rancher.com/getting-started/quick-start-guides/deploy-rancher-manager/helm-cli
+- name: Install Rancher
+  become: true
+  hosts: server_nodes
+  tasks:
+    - name: Install helm
+      ansible.builtin.shell: curl -#L https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+    - name: Add Rancher repo
+      ansible.builtin.shell: helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+    - name: Add Jetstack repo
+      ansible.builtin.shell: helm repo add jetstack https://charts.jetstack.io
+    - name: Update helm repos
+      ansible.builtin.shell: helm repo update
+    - name: Create cattle-system namespace
+      ansible.builtin.shell: kubectl create namespace cattle-system
+    - name: Apply cert-manager
+      ansible.builtin.shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/"{{ lookup('env', 'CERTMANAGER_VERSION') }}"/cert-manager.crds.yaml
+    - name: Install cert-manager
+      ansible.builtin.shell: helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace
+    - name: Install Rancher
+      ansible.builtin.shell: helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname="{{ lookup('env', 'RANCHER_ADDRESS') }}" --set replicas=1 --set bootstrapPassword="{{ lookup('env', 'BOOTSTRAP_PASSWORD') }}"
