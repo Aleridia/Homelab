@@ -2,40 +2,58 @@
 - name: Prepare rke2 config
   hosts: localhost
   tasks: 
-    - name: Make a copy of rke2-config file
+    #Agent config
+    - name: AGENT Make a copy of rke2-config-agent file
       ansible.builtin.copy:
-        src: ../resources/rke2-config.yaml
-        dest: ../resources/config.yaml 
+        src: ../resources/rke2-config-agent.yaml
+        dest: ../resources/config-agent.yaml 
 
-    - name: Replace token with var env
+    - name: AGENT Replace token with var env server config
       ansible.builtin.replace:
-        path: ../resources/config.yaml
+        path: ../resources/config-agent.yaml
         regexp: '<TOKEN>'
         replace: "{{ lookup('env', 'RKE2_TOKEN') }}"
 
-    - name: Replace TLS-SAN with var env
+    - name: AGENT Replace token with var env server config
       ansible.builtin.replace:
-        path: ../resources/config.yaml
+        path: ../resources/config-agent.yaml
+        regexp: '<RANCHER_ADDRESS>'
+        replace: "{{ lookup('env', 'RANCHER_ADDRESS') }}"
+
+    #Server config
+    - name: SERVER Make a copy of rke2-config-server file
+      ansible.builtin.copy:
+        src: ../resources/rke2-config-server.yaml
+        dest: ../resources/config-server.yaml 
+
+    - name: SERVER Replace token with var env server config
+      ansible.builtin.replace:
+        path: ../resources/config-server.yaml
+        regexp: '<TOKEN>'
+        replace: "{{ lookup('env', 'RKE2_TOKEN') }}"
+
+    - name: SERVER Replace TLS-SAN with var env
+      ansible.builtin.replace:
+        path: ../resources/config-server.yaml
         regexp: '<TLS-SAN>'
         replace: "{{ lookup('env', 'RANCHER_ADDRESS') }}"
 
-    - name: Make a copy of rke2-config file for other servers
+    - name: SERVER Make a copy of rke2-config file for other servers
       ansible.builtin.copy:
-        src: ../resources/config.yaml
-        dest: ../resources/config2.yaml 
+        src: ../resources/config-server.yaml
+        dest: ../resources/config-server2.yaml 
         
-    - name: Add server line
+    - name: SERVER Add server line
       ansible.builtin.lineinfile:
-        path: ../resources/config2.yaml
+        path: ../resources/config-server2.yaml
         line: "server: https://{{ lookup('env', 'RANCHER_ADDRESS') }}:9345"
         create: yes
 
 #Doc : https://docs.rke2.io/install/quickstart
-- name: Install RKE2 first server
+- name: Install RKE2 server
   become: true
   become_user: root
   hosts: first_server_node, server_nodes
-  # order: reverse_sorted
   tasks:
     - name: Creates rke2 config directory
       ansible.builtin.file:
@@ -45,13 +63,13 @@
     - name: Copy config file first server
       when: inventory_hostname == groups['first_server_node'][0]
       ansible.builtin.copy:
-        src: ../resources/config.yaml
+        src: ../resources/config-server.yaml
         dest: /etc/rancher/rke2/config.yaml
 
     - name: Copy config file other server
       when: inventory_hostname != groups['first_server_node'][0]
       ansible.builtin.copy:
-        src: ../resources/config2.yaml
+        src: ../resources/config-server2.yaml
         dest: /etc/rancher/rke2/config.yaml
 
     - name: Script install
@@ -76,6 +94,35 @@
         src: /etc/rancher/rke2/rke2.yaml
         dest: ../resources/kubeconfig.yaml
         flat: yes
+        
+- name: Install RKE2 Agent
+  hosts: worker_nodes
+  become: true
+  become_user: root
+  tasks:
+    - name: Creates rke2 config directory
+      ansible.builtin.file:
+        path: /etc/rancher/rke2
+        state: directory
+
+    - name: Copy config file to agent node
+      ansible.builtin.copy:
+        src: ../resources/config-agent.yaml
+        dest: /etc/rancher/rke2/config.yaml
+
+    - name: Script install
+      ansible.builtin.shell: curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" sh -
+
+    - name: Enable RKE2 service
+      ansible.builtin.systemd_service:
+        name: rke2-server
+        enabled: true
+        masked: no
+
+    - name: Start RKE2 service
+      ansible.builtin.systemd_service:
+        name: rke2-server
+        state: started
 
 #Doc : https://ranchermanager.docs.rancher.com/getting-started/quick-start-guides/deploy-rancher-manager/helm-cli
 - name: Install Rancher
@@ -115,12 +162,18 @@
         path: ../resources/kubeconfig.yaml
         regexp: 'https://127.0.0.1:6443'
         replace: "https://{{ lookup('env', 'RANCHER_ADDRESS') }}:6443"
-    - name: Delete config file 1
-      ansible.builtin.file:
-        path: ../resources/config.yaml
+
+    - name: Find config files to delete
+      ansible.builtin.find:
+        paths: ../resources/
+        patterns: "config.*"
+        use_regex: true
+      register: files_to_delete
+
+    - name: Deleting the config files
+      file:
+        path: "{{ item.path }}"
         state: absent
-    - name: Delete config file 2
-      ansible.builtin.file:
-        path: ../resources/config2.yaml
-        state: absent
+      with_items: "{{ files_to_delete.files }}"
+
 

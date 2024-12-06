@@ -1,0 +1,2 @@
+token: <TOKEN>
+server: https://<RANCHER_ADDRESS>:9345
