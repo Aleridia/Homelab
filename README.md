@@ -31,9 +31,17 @@ You have to download ansible hardening devsec playbook :
 `ansible-galaxy collection install devsec.hardening`
 
 
-Then run the playbook :
-`ansible-playbook -i inventory.yml playbook.yaml -K`
+Then run the playbook to harden machines :
+`ansible-playbook -i inventory.yml hardening/hardening.yaml -K`
 Enter the ansible user password for the managed nodes.
+
+After this you need to add the private ssh key to authenticate to the nodes : `eval "$(ssh-agent -s)"` and add the key : `ssh-add <PATH_TO_PRIVATE_KEY>`.
+
+Now install rke2 and Rancher in all the machines
+`ansible-playbook -i inventory.yml rke2/install.yaml -K`
+
+Note : you can uninstall rke2 & Rancher via the `rke2/uninstall.yaml` playbook.
+
 
 ## Rancher
 Optiplex-3060-1,2 & 3 are the server nodes.
@@ -43,6 +51,7 @@ Why 3 server nodes ?
 - If I have only one and it crashes my cluster is fully down
 - Number of server ndes need to be odd, because of the [quorum](ttps://medium.com/@osmarrod18/decoding-quorum-in-kubernetes-a-journey-of-learning-4e5de1d30e2d)
 
+To configure rancher, go to the `RANCHER_ADDRESS` and put the `BOOTSTRAP_PASSWORD`. 
 
 ## Hardware
 - Nas : DS218+, 17.2W, 2x 3.6TO RAID 1

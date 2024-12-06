@@ -1,10 +1,11 @@
 #Doc : https://docs.rke2.io/install/quickstart
 - name: Install RKE2
   become: true
+  become_user: root
   hosts: server_nodes
   tasks:
     - name: Script install
-      ansible.builtin.shell: 
+      ansible.builtin.shell: curl -sfL https://get.rke2.io | sh -
     - name: Enable RKE2 service
       ansible.builtin.systemd_service:
         name: rke2-server
@@ -16,13 +17,17 @@
         state: started
     - name: Symlink kubectl
       ansible.builtin.shell: ln -s $(find /var/lib/rancher/rke2/data/ -name kubectl) /usr/local/bin/kubectl
-    - name: export kubeconfig
-      ansible.builtin.shell: export KUBECONFIG=/etc/rancher/rke2/rke2.yaml
+
+
+
 
 #Doc : https://ranchermanager.docs.rancher.com/getting-started/quick-start-guides/deploy-rancher-manager/helm-cli
 - name: Install Rancher
   become: true
+  become_user: root
   hosts: server_nodes
+  environment:
+    KUBECONFIG: /etc/rancher/rke2/rke2.yaml
   tasks:
     - name: Install helm
       ansible.builtin.shell: curl -#L https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -34,9 +39,12 @@
       ansible.builtin.shell: helm repo update
     - name: Create cattle-system namespace
       ansible.builtin.shell: kubectl create namespace cattle-system
-    - name: Apply cert-manager
-      ansible.builtin.shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/"{{ lookup('env', 'CERTMANAGER_VERSION') }}"/cert-manager.crds.yaml
-    - name: Install cert-manager
+    - name: Apply cert-manager crd
+      ansible.builtin.shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v"{{ lookup('env', 'CERTMANAGER_VERSION') }}"/cert-manager.crds.yaml
+    - name: Install cert-manager chart
       ansible.builtin.shell: helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace
-    - name: Install Rancher
+    - name: Pause
+      ansible.builtin.pause:
+        seconds: 60
+    - name: Install Rancher chart
       ansible.builtin.shell: helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname="{{ lookup('env', 'RANCHER_ADDRESS') }}" --set replicas=1 --set bootstrapPassword="{{ lookup('env', 'BOOTSTRAP_PASSWORD') }}"
