@@ -1,10 +1,14 @@
-- name: Uninstall Rancher
+- name: Uninstall RKE2
   become: true
-  become_user: root
-  hosts: server_nodes
+  hosts: server_nodes, first_server_node
   tasks:
     - name: Uninstall rke2
       ansible.builtin.shell: bash /usr/local/bin/rke2-uninstall.sh
+
+- name: Delete Helm and Kubectl
+  hosts: first_server_node
+  become: true
+  tasks:
     - name: Delete kubectl
       ansible.builtin.shell: rm /usr/local/bin/kubectl
     - name: Delete helm
