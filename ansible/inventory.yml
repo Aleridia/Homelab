@@ -10,14 +10,18 @@ nodes:
       ansible_host: "{{ lookup('env', 'NODE_04') }}"
   vars:
     ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
-server_nodes:
+first_server_node:
   hosts:
     node_01:
       ansible_host: "{{ lookup('env', 'NODE_01') }}"
-    # node_02:
-    #   ansible_host: "{{ lookup('env', 'NODE_02') }}"
-    # node_03:
-    #   ansible_host: "{{ lookup('env', 'NODE_03') }}"
+  vars:
+    ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+server_nodes:
+  hosts:
+    node_02:
+      ansible_host: "{{ lookup('env', 'NODE_02') }}"
+    node_03:
+      ansible_host: "{{ lookup('env', 'NODE_03') }}"
   vars:
     ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
 worker_nodes:

@@ -1,0 +1,3 @@
+token: <TOKEN>
+tls-san:
+  - <TLS-SAN>
