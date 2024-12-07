@@ -60,7 +60,16 @@ Why 3 server nodes ?
 - If I have only one and it crashes my cluster is fully down
 - Number of server ndes need to be odd, because of the [quorum](https://medium.com/@osmarrod18/decoding-quorum-in-kubernetes-a-journey-of-learning-4e5de1d30e2d)
 
-To configure rancher, go to the `RANCHER_ADDRESS` and put the `BOOTSTRAP_PASSWORD`. 
+To configure rancher via UI, go to the `RANCHER_ADDRESS` and put the `BOOTSTRAP_PASSWORD`. 
+
+I use longhorn to manage my SSD storage in the nodes and create automatically PV/PVC.
+To install it, run the playbook in `cluster-apps/longhorn.yaml`.
+
+## TODO
+
+- [ ] Check if Cilium if worth it to add
+- [ ] Use NAS as storage
+- [ ] Enhance documentation
 
 ## Sources
 - To start homelab : https://github.com/veteranbv/Homelab-Blueprint
@@ -68,3 +77,4 @@ To configure rancher, go to the `RANCHER_ADDRESS` and put the `BOOTSTRAP_PASSWOR
 - Softwares : https://github.com/awesome-selfhosted/awesome-selfhosted
 - Hardening playbooks : https://galaxy.ansible.com/ui/repo/published/devsec/hardening/
 - Project that helped me to build my own homelab : https://github.com/nicogigi92/minilab
+- Helm about installation process : https://ranchergovernment.com/blog/article-simple-rke2-longhorn-and-rancher-install
