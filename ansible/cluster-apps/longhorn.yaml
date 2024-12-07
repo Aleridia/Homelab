@@ -1,0 +1,40 @@
+#Doc: https://longhorn.io/docs/1.7.2/deploy/install/#installation-requirements
+- name: Prepare longhorn config
+  hosts: nodes
+  become: true
+  tasks:
+    - name: Install open-iscsi
+      ansible.builtin.apt:
+        name: open-iscsi
+        state: present    
+        
+    - name: Install dm-crypt
+      ansible.builtin.apt:
+        name: dmsetup
+        state: present
+
+    - name: Enable open-iscsi service
+      ansible.builtin.systemd_service:
+        name: open-iscsi
+        enabled: true
+        masked: no
+
+    - name: Start open-iscsi service
+      ansible.builtin.systemd_service:
+        name: open-iscsi
+
+- name: Install longhorn
+  become: true
+  become_user: root
+  hosts: first_server_node
+  environment:
+    KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+  tasks:
+    - name: Add longhorn repo
+      ansible.builtin.shell: helm repo add longhorn https://charts.longhorn.io
+
+    - name: Update helm repos
+      ansible.builtin.shell: helm repo update
+
+    - name: Install longhorn
+      ansible.builtin.shell: helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace
