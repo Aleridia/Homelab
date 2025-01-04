@@ -1,3 +1,4 @@
 .env
 kubeconfig.yaml
 config*.yaml
+secret.yaml
