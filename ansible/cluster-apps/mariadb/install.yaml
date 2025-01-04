@@ -1,0 +1,30 @@
+- name: Install Mariadb
+  hosts: localhost
+  tasks:
+    - name: Add bitnami repo
+      kubernetes.core.helm_repository:
+        name: bitnami
+        repo_url: "https://charts.bitnami.com/bitnami"
+
+    - name: Create secret to apply credentials
+      vars:
+          mariadb_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
+          mariadb_password: "{{ lookup('env', 'MARIADB_PASSWORD') }}"
+          mariadb_replication_password: "{{ lookup('env', 'MARIADB_REPLICATION_PASSWORD') }}"
+          mariadb_secret_name: "mariadb-secret-{{ lookup('env', 'NAMESPACE') }}"
+      kubernetes.core.k8s:
+        state: present
+        template: 'templates/secret.j2.yaml'
+        namespace: "{{ lookup('env', 'NAMESPACE') }}"  
+
+    - name: Apply mariadb chart
+      vars:
+        mariadb_username: "{{ lookup('env', 'MARIADB_USERNAME') }}"
+        mariadb_database_name: "{{ lookup('env', 'MARIADB_DATABASE') }}"
+        mariadb_secret_name: "mariadb-secret-{{ lookup('env', 'NAMESPACE') }}"
+      kubernetes.core.helm:
+        name: "mariadb-{{ lookup('env', 'NAMESPACE') }}"
+        chart_ref: bitnami/mariadb
+        release_namespace: mariadb
+        state: present
+        values: "{{ lookup('template', 'values.yaml') | from_yaml }}"

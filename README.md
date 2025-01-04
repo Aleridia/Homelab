@@ -41,6 +41,12 @@ If you want to be full safe you can still delete this user after the playbook.
 You have to download ansible hardening devsec playbook :
 `ansible-galaxy collection install devsec.hardening`
 
+And to use kubernetes collection :
+- `ansible-galaxy collection install kubernetes.core`
+- Load virtual env python `source <PATH_TO_ENV>/bin/activate`
+- Install ansible-core `pip install ansible-core`
+- Install dependencies : `pip3 install kubernetes pyyaml`
+- Load the kubeconfig file `export KUBECONFIG=<PATH_TO_PROJECT>/ansible/resources/kubeconfig.yaml`
 
 Then run the playbook to harden machines :
 `ansible-playbook -i inventory.yml hardening/hardening.yaml -K`
@@ -54,7 +60,6 @@ Now install rke2 and Rancher in all the machines
 Note : you can uninstall rke2 & Rancher via the `rke2/uninstall.yaml` playbook.
 
 ## Load balancer
-TODO : Add HAproxy
 
 Current : configured a DNS server to redirect *.<DOMAIN> to a node. Usefull to manage ingress.
 
@@ -73,6 +78,11 @@ To install it, run the playbook in `cluster-apps/longhorn.yaml`.
 
 ## Cluster-app
 
+Here are all the helm repo dependencies that will be used :
+- bitnami                 https://charts.bitnami.com/bitnami       
+- codecentric             https://codecentric.github.io/helm-charts
+- phybros-helm-charts     https://phybros.github.io/helm-charts  
+
 ### Keycloak
 Used to have SSO.
 In progress.
@@ -81,15 +91,12 @@ In progress.
 For multiple tools I need mariadb instance.
 
 * If previous installation, follow bitnami doc to change password, or delete PV.
-* Deploy the secret with credentials :
-    - Use envsubst to inject var env : `envsubst < mariadb-secret-template.yaml > secret.yaml`
-    - Deploy the secret in the namespace : `kubectl apply -f secret.yaml -n <NAMESPACE>`
-* `helm install mariadb oci://registry-1.docker.io/bitnamicharts/mariadb -f mariadb/values.yaml --set auth.username=$MARIADB_USERNAME --set auth.database=$MARIADB_DATABASE`
+* Set the $NAMESPACE var env to tell ansible where install mariadb `export NAMESPACE=<NAMESPACE>`
+* Run the playbook to install it: `ansible-playbook cluster-apps/mariadb/install.yaml`
 * To test if it works :
     - `kubectl run mariadb-client --rm --tty -i --restart='Never' --image  docker.io/bitnami/mariadb:11.4.4-debian-12-r2 --namespace default --command -- bash`
-    - `mysql -h mariadb.default.svc.cluster.local -uroot -p <DATABASE_NAME>` and then put root password
+    - `mysql -h mariadb-<$NAMESPACE>.<$NAMESPACE>.svc.cluster.local -uroot -p <$MARIADB_DATABASE>` and then put root password
 
-TODO : configure custom resources for mariadb
 
 ### Seafile
 [Seafile](https://manual.seafile.com/latest/) is a file-hosting and sharing software.
@@ -101,11 +108,13 @@ TODO : configure custom resources for mariadb
 
 
 ## TODO
-
 - [ ] Check if Cilium if worth it to add
 - [ ] Use NAS as storage
+- [ ] Add HAproxy
 - [ ] Enhance documentation
 - [ ] Add webserver to host blog & auto deploy in medium + stackpills
+- [ ] Configure custom resources for mariadb
+
 
 ## Sources
 - To start homelab : https://github.com/veteranbv/Homelab-Blueprint

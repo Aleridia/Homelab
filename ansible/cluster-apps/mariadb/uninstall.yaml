@@ -1,0 +1,24 @@
+- name: Install Mariadb
+  hosts: localhost
+  tasks:
+    - name: Remove bitnami repo
+      kubernetes.core.helm_repository:
+        name: bitnami
+        repo_url: "https://charts.bitnami.com/bitnami"
+        state: absent
+
+    - name: Remove mariadb chart
+      kubernetes.core.helm:
+        name: "mariadb-{{ lookup('env', 'NAMESPACE') }}"
+        release_namespace: mariadb
+        state: absent
+        wait: true
+
+    - name: Remove secret
+      kubernetes.core.k8s:
+        state: absent
+        name: "mariadb-secret-{{ lookup('env', 'NAMESPACE') }}"
+        api_version: v1
+        kind: Secret
+        namespace: "{{ lookup('env', 'NAMESPACE') }}"        
+
