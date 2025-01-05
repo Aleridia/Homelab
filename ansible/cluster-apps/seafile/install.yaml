@@ -1,0 +1,33 @@
+- name: Setup installation
+  hosts: localhost
+  tasks:
+    - name: Add seafile repo
+      kubernetes.core.helm_repository:
+        name: seafile
+        repo_url: "https://300481.github.io/charts/"
+    - name: Create the namespace
+      kubernetes.core.k8s:
+        name: "{{ lookup('env', 'NAMESPACE') }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+
+- name: Install mariadb
+  ansible.builtin.import_playbook: ../mariadb/install.yaml
+
+- name: Install seafile
+  hosts: localhost
+  tasks:
+    - name: Apply seafile chart
+      vars:
+        mariadb_hostname: "mariadb-{{ lookup('env', 'NAMESPACE') }}"
+        mariadb_secret_name: "mariadb-secret-{{ lookup('env', 'NAMESPACE') }}"
+        seafile_email: "{{ lookup('env', 'SEAFILE_EMAIL') }}"
+        seafile_admin_password: "{{ lookup('env', 'SEAFILE_ADMIN_PASSWORD') }}"
+        seafile_hostname: "seafile.{{ lookup('env', 'DOMAIN_NAME') }}"
+      kubernetes.core.helm:
+        name: "seafile"
+        chart_ref: seafile/seafile
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+        state: present
+        values: "{{ lookup('template', 'values.yaml') | from_yaml }}"

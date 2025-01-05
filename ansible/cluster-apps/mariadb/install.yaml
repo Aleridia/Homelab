@@ -25,6 +25,6 @@
       kubernetes.core.helm:
         name: "mariadb-{{ lookup('env', 'NAMESPACE') }}"
         chart_ref: bitnami/mariadb
-        release_namespace: mariadb
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
         state: present
         values: "{{ lookup('template', 'values.yaml') | from_yaml }}"

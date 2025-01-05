@@ -81,7 +81,7 @@ To install it, run the playbook in `cluster-apps/longhorn.yaml`.
 Here are all the helm repo dependencies that will be used :
 - bitnami                 https://charts.bitnami.com/bitnami       
 - codecentric             https://codecentric.github.io/helm-charts
-- phybros-helm-charts     https://phybros.github.io/helm-charts  
+- seafile                 https://300481.github.io/charts/
 
 ### Keycloak
 Used to have SSO.
@@ -102,9 +102,7 @@ For multiple tools I need mariadb instance.
 [Seafile](https://manual.seafile.com/latest/) is a file-hosting and sharing software.
 [Github](https://github.com/300481/seafile-server) & [Helm](https://artifacthub.io/packages/helm/phybros-helm-charts/seafile) chart.
 
-* Create specific namespace for it `kubectl create namespace seafile`
-* Follow [Mariadb](#mariadb) steps to install the db in the namespace
-* `helm repo add phybros-helm-charts https://phybros.github.io/helm-charts`
+* Launch the playbook `ansible-playbook cluster-apps/seafile/install.yaml`
 
 
 ## TODO

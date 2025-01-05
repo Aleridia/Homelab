@@ -1,0 +1,35 @@
+# Default values for seafile-server.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+seafile:
+  image: docker.io/seafileltd/seafile-mc:11.0.12
+  pause: false
+  database:
+    hostname: {{ mariadb_hostname | mandatory }}
+    rootPasswordSecret:
+      name: {{ mariadb_secret_name | mandatory }}
+      key: mariadb-root-password
+  environment:
+  - name: TIME_ZONE
+    value: "Etc/UTC"
+  - name: SEAFILE_ADMIN_EMAIL
+    value: {{ seafile_email | mandatory }}
+  - name: SEAFILE_ADMIN_PASSWORD
+    value: {{ seafile_admin_password | mandatory }}
+  - name: SEAFILE_SERVER_HOSTNAME
+    value: {{ seafile_hostname | mandatory }}
+
+# nodeSelector: {}
+
+ingress:
+  annotations:
+    # use NGINX Ingress Controller
+    kubernetes.io/ingress.class: "nginx"
+    # # use Cert-Manager for LetsEncrypt Certificates
+    # cert-manager.io/issuer: "letsencrypt-prod"
+    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  host: {{ seafile_hostname | mandatory }}
+  tls:
+    host: {{ seafile_hostname | mandatory }}
+    secretName: seafile-tls
