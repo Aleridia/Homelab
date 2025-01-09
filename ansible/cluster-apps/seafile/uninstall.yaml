@@ -1,3 +1,5 @@
+#Not deleting NS and PV/PVC because I don't want to lose all my data with a dump mistake
+#If I want to delete all, I'll do it manually
 - name: Uninstall Seafile
   hosts: localhost
   tasks:
@@ -6,12 +8,15 @@
         name: seafile
         repo_url: "https://300481.github.io/charts/"
         state: absent
-
-#Remove mariadb
-
     - name: Remove seafile chart
       kubernetes.core.helm:
         name: "seafile"
         release_namespace: seafile
         state: absent
         wait: true
+
+#Remove mariadb
+- name: Uninstall mariadb
+  ansible.builtin.import_playbook: ../mariadb/uninstall.yaml
+
+   
