@@ -1,4 +1,4 @@
-- name: Install Mariadb
+- name: Uninstall Mariadb
   hosts: localhost
   tasks:
     - name: Remove bitnami repo
