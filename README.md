@@ -74,7 +74,7 @@ Why 3 server nodes ?
 To configure rancher via UI, go to the `RANCHER_ADDRESS` and put the `BOOTSTRAP_PASSWORD`. 
 
 I use longhorn to manage my SSD storage in the nodes and create automatically PV/PVC.
-To install it, run the playbook in `cluster-apps/longhorn.yaml`.
+To install it, run the playbook in `cluster-apps/install.yaml`.
 
 ## Cluster-app
 
