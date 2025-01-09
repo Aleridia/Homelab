@@ -1,0 +1,17 @@
+- name: Uninstall Seafile
+  hosts: localhost
+  tasks:
+    - name: Remove seafile repo
+      kubernetes.core.helm_repository:
+        name: seafile
+        repo_url: "https://300481.github.io/charts/"
+        state: absent
+
+#Remove mariadb
+
+    - name: Remove seafile chart
+      kubernetes.core.helm:
+        name: "seafile"
+        release_namespace: seafile
+        state: absent
+        wait: true
