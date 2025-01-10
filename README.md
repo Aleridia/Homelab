@@ -105,7 +105,7 @@ For multiple tools I need mariadb instance.
 [Github](https://github.com/300481/seafile-server) & [Helm](https://artifacthub.io/packages/helm/phybros-helm-charts/seafile) chart.
 
 * Launch the playbook `ansible-playbook cluster-apps/seafile/install.yaml`
-* Add `CSRF_TRUSTED_ORIGINS = ["https://seafile.<$DOMAIN_NAME>"]` to the /home/me/seafile/data/seafile/conf/seahub_settings.py config file. You need to modify it only once, it's persistent for all the next installation (unless you delete the seafile pv). [GH issue](https://github.com/haiwen/seafile/issues/2707).
+* Add `CSRF_TRUSTED_ORIGINS = ["https://seafile.<$DOMAIN_NAME>"]` to the /otp/seafile/conf/seahub_settings.py config file then delete pod. You need to modify it only once, it's persistent for all the next installation (unless you delete the seafile pv). [GH issue](https://github.com/haiwen/seafile/issues/2707).
 
 
 ## TODO
