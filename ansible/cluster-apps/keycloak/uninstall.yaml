@@ -1,16 +1,16 @@
 #Not deleting NS and PV/PVC because I don't want to lose all my data with a dump mistake
 #If I want to delete all, I'll do it manually
-- name: Uninstall Seafile
+- name: Uninstall keycloak
   hosts: localhost
   tasks:
-    - name: Remove seafile repo
+    - name: Remove keycloak repo
       kubernetes.core.helm_repository:
-        name: seafile
-        repo_url: "https://300481.github.io/charts/"
+        name: keycloak
+        repo_url: "https://codecentric.github.io/helm-charts"
         state: absent
-    - name: Remove seafile chart
+    - name: Remove keycloak chart
       kubernetes.core.helm:
-        name: "seafile"
+        name: "keycloak"
         release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
         state: absent
         wait: true

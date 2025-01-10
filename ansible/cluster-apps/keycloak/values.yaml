@@ -1,0 +1,37 @@
+ingress:
+  enabled: true
+  rules:
+    - 
+      host: {{ keycloak_hostname | mandatory }}
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts: 
+      - {{ keycloak_hostname | mandatory }}
+extraEnv: |
+  - name: KEYCLOAK_ADMIN
+    value: {{ keycloak_username | mandatory }}
+  - name: KEYCLOAK_ADMIN_PASSWORD
+    value: {{ keycloak_admin_password | mandatory }}
+  - name: KC_PROXY_HEADERS
+    value: "xforwarded"
+  - name: JAVA_OPTS_APPEND
+    value: >-
+      -Djgroups.dns.query={{ keycloak_hostname_java | mandatory }}
+command:
+  - "/opt/keycloak/bin/kc.sh"
+  - "start"
+  - "--http-port=8080"
+  - "--hostname-strict=false"
+
+dbchecker:
+  enabled: true
+
+database:
+  vendor: mariadb
+  hostname: {{ mariadb_hostname | mandatory }}
+  port: 3306
+  database: {{ mariadb_database_name | mandatory }}
+  username: {{ mariadb_username | mandatory }}
+  password: {{ mariadb_password | mandatory }}

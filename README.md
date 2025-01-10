@@ -84,8 +84,10 @@ Here are all the helm repo dependencies that will be used :
 - seafile                 https://300481.github.io/charts/
 
 ### Keycloak
-Used to have SSO.
-In progress.
+This tool is used by all my other tool to be authenticated.
+
+* To install launch the playbook `ansible-playbook cluster-apps/keycloak/install.yaml`
+* Then you can go to the url `https://keycloak.<$DOMAIN_NAME>/auth`. Redirection won't work, will be patched later.
 
 ## Mariadb
 For multiple tools I need mariadb instance.
@@ -107,6 +109,8 @@ For multiple tools I need mariadb instance.
 
 
 ## TODO
+- [ ] Patch broken redirection (/ to /auth) in keycloak
+- [ ] Harden cluster (rke2, keycloak FIPS, RBAC, PSA)
 - [ ] Check if Cilium if worth it to add
 - [ ] Use NAS as storage
 - [ ] Add HAproxy
