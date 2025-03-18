@@ -87,6 +87,9 @@ Then try to mount it and reload the daemonset :
 - `mount -a`
 - `systemctl daemon-reload`
 
+Last thing you need to do it label the node where you mounted the NFS :
+- `kubectl label nodes <your-node-name> disktype=nfs`
+
 Don't forget to add the disk in Longhorn after this if you want it to be auto-managed.
 
 ## Cluster-app
