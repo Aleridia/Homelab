@@ -79,7 +79,7 @@ I use longhorn to manage my SSD storage in the nodes and create automatically PV
 To install it, run the playbook in `cluster-apps/longhorn/install.yaml`.
 
 ### NFS
-First you need to configure the NFS server. For synology follow (this guide)[https://kb.synology.com/fr-fr/DSM/tutorial/How_to_access_files_on_Synology_NAS_within_the_local_network_NFS].
+First you need to configure the NFS server. For synology follow [this guide](https://kb.synology.com/fr-fr/DSM/tutorial/How_to_access_files_on_Synology_NAS_within_the_local_network_NFS).
 
 To mount the NFS on client, go to one node and add this line to the `/etc/fstab`
 - `<SERVER_IP>:<PATH_TO_NFS> /media/NFS nfs vers=4.1,defaults,user,auto,_netdev,bg,rsize=16384,wsize=16384 0 0`
