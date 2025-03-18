@@ -6,4 +6,4 @@ So the (documentation)[https://docker-minecraft-server.readthedocs.io/en/latest/
 
 To install it :
 - `helm repo add itzg https://itzg.github.io/minecraft-server-charts/`
-- `helm install --namespace ingress-nginx --create-namespace --name minecraft -f values.yaml itzg/minecraft`
+- `helm install --namespace minecraft --create-namespace --name minecraft -f values.yaml itzg/minecraft`
