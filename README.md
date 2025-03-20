@@ -81,16 +81,13 @@ To install it, run the playbook in `cluster-apps/longhorn/install.yaml`.
 ### NFS
 First you need to configure the NFS server. For synology follow [this guide](https://kb.synology.com/fr-fr/DSM/tutorial/How_to_access_files_on_Synology_NAS_within_the_local_network_NFS).
 
-To mount the NFS on client, go to one node and add this line to the `/etc/fstab`
+To **manually** mount the NFS on client, go to one node and add this line to the `/etc/fstab`
 - `<SERVER_IP>:<PATH_TO_NFS> /media/NFS nfs vers=4.1,defaults,user,auto,_netdev,bg,rsize=16384,wsize=16384 0 0`
 Then try to mount it and reload the daemonset :
 - `mount -a`
 - `systemctl daemon-reload`
 
-Last thing you need to do it label the node where you mounted the NFS :
-- `kubectl label nodes <your-node-name> disktype=nfs`
-
-Then all the deployments that need to access to the NFS need to have the `nodeSelector: disktype=nfs`.
+If you want to let kube manage the NFS, make sure that all the nodes have `nfs-common` installed (already covered by rke2 install).
 
 ## Cluster-app
 

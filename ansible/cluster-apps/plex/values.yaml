@@ -205,8 +205,8 @@ service:
   annotations: {}
 
 
-nodeSelector:
-  disktype: nfs
+# nodeSelector:
+#   disktype: nfs
 
 tolerations: []
 
