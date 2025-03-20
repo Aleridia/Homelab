@@ -14,13 +14,13 @@ global:
 
 ingress:
   # -- Specify if an ingress resource for the pms server should be created or not
-  enabled: false
+  enabled: true
 
   # -- The ingress class that should be used
-  ingressClassName: "ingress-nginx"
+  ingressClassName: "nginx"
 
   # -- The url to use for the ingress reverse proxy to point at this pms instance
-  url: ""
+  url: "https://plex.lapin"
 
   # -- Optional secret name to provide valid https connections
   # using an existing SSL certificate
@@ -205,8 +205,7 @@ service:
   annotations: {}
 
 
-# nodeSelector:
-#   disktype: nfs
+nodeSelector: {}
 
 tolerations: []
 
