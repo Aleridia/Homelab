@@ -1,179 +1,188 @@
-#Doc : https://docs.rke2.io/install/ha
-- name: Prepare rke2 config
-  hosts: localhost
-  tasks: 
-    #Agent config
-    - name: AGENT Make a copy of rke2-config-agent file
-      ansible.builtin.copy:
-        src: ../resources/rke2-config-agent.yaml
-        dest: ../resources/config-agent.yaml 
+# #Doc : https://docs.rke2.io/install/ha
+# - name: Prepare rke2 config
+#   hosts: localhost
+#   tasks: 
+#     #Agent config
+#     - name: AGENT Make a copy of rke2-config-agent file
+#       ansible.builtin.copy:
+#         src: ../resources/rke2-config-agent.yaml
+#         dest: ../resources/config-agent.yaml 
 
-    - name: AGENT Replace token with var env server config
-      ansible.builtin.replace:
-        path: ../resources/config-agent.yaml
-        regexp: '<TOKEN>'
-        replace: "{{ lookup('env', 'RKE2_TOKEN') }}"
+#     - name: AGENT Replace token with var env server config
+#       ansible.builtin.replace:
+#         path: ../resources/config-agent.yaml
+#         regexp: '<TOKEN>'
+#         replace: "{{ lookup('env', 'RKE2_TOKEN') }}"
 
-    - name: AGENT Replace token with var env server config
-      ansible.builtin.replace:
-        path: ../resources/config-agent.yaml
-        regexp: '<RANCHER_ADDRESS>'
-        replace: "{{ lookup('env', 'RANCHER_ADDRESS') }}"
+#     - name: AGENT Replace token with var env server config
+#       ansible.builtin.replace:
+#         path: ../resources/config-agent.yaml
+#         regexp: '<RANCHER_ADDRESS>'
+#         replace: "{{ lookup('env', 'RANCHER_ADDRESS') }}"
 
-    #Server config
-    - name: SERVER Make a copy of rke2-config-server file
-      ansible.builtin.copy:
-        src: ../resources/rke2-config-server.yaml
-        dest: ../resources/config-server.yaml 
+#     #Server config
+#     - name: SERVER Make a copy of rke2-config-server file
+#       ansible.builtin.copy:
+#         src: ../resources/rke2-config-server.yaml
+#         dest: ../resources/config-server.yaml 
 
-    - name: SERVER Replace token with var env server config
-      ansible.builtin.replace:
-        path: ../resources/config-server.yaml
-        regexp: '<TOKEN>'
-        replace: "{{ lookup('env', 'RKE2_TOKEN') }}"
+#     - name: SERVER Replace token with var env server config
+#       ansible.builtin.replace:
+#         path: ../resources/config-server.yaml
+#         regexp: '<TOKEN>'
+#         replace: "{{ lookup('env', 'RKE2_TOKEN') }}"
 
-    - name: SERVER Replace TLS-SAN with var env
-      ansible.builtin.replace:
-        path: ../resources/config-server.yaml
-        regexp: '<TLS-SAN>'
-        replace: "{{ lookup('env', 'RANCHER_ADDRESS') }}"
+#     - name: SERVER Replace TLS-SAN with var env
+#       ansible.builtin.replace:
+#         path: ../resources/config-server.yaml
+#         regexp: '<TLS-SAN>'
+#         replace: "{{ lookup('env', 'RANCHER_ADDRESS') }}"
 
-    - name: SERVER Make a copy of rke2-config file for other servers
-      ansible.builtin.copy:
-        src: ../resources/config-server.yaml
-        dest: ../resources/config-server2.yaml 
+#     - name: SERVER Make a copy of rke2-config file for other servers
+#       ansible.builtin.copy:
+#         src: ../resources/config-server.yaml
+#         dest: ../resources/config-server2.yaml 
         
-    - name: SERVER Add server line
-      ansible.builtin.lineinfile:
-        path: ../resources/config-server2.yaml
-        line: "server: https://{{ lookup('env', 'RANCHER_ADDRESS') }}:9345"
-        create: yes
+#     - name: SERVER Add server line
+#       ansible.builtin.lineinfile:
+#         path: ../resources/config-server2.yaml
+#         line: "server: https://{{ lookup('env', 'RANCHER_ADDRESS') }}:9345"
+#         create: yes
 
-#Doc : https://docs.rke2.io/install/quickstart
-- name: Install RKE2 server
-  become: true
-  become_user: root
-  hosts: first_server_node, server_nodes
-  tasks:
-    - name: Creates rke2 config directory
-      ansible.builtin.file:
-        path: /etc/rancher/rke2
-        state: directory
+# #Doc : https://docs.rke2.io/install/quickstart
+# - name: Install RKE2 server
+#   become: true
+#   become_user: root
+#   hosts: first_server_node, server_nodes
+#   tasks:
+#     - name: Creates rke2 config directory
+#       ansible.builtin.file:
+#         path: /etc/rancher/rke2
+#         state: directory
 
-    - name: Copy config file first server
-      when: inventory_hostname == groups['first_server_node'][0]
-      ansible.builtin.copy:
-        src: ../resources/config-server.yaml
-        dest: /etc/rancher/rke2/config.yaml
+#     - name: Copy config file first server
+#       when: inventory_hostname == groups['first_server_node'][0]
+#       ansible.builtin.copy:
+#         src: ../resources/config-server.yaml
+#         dest: /etc/rancher/rke2/config.yaml
 
-    - name: Copy config file other server
-      when: inventory_hostname != groups['first_server_node'][0]
-      ansible.builtin.copy:
-        src: ../resources/config-server2.yaml
-        dest: /etc/rancher/rke2/config.yaml
+#     - name: Copy config file other server
+#       when: inventory_hostname != groups['first_server_node'][0]
+#       ansible.builtin.copy:
+#         src: ../resources/config-server2.yaml
+#         dest: /etc/rancher/rke2/config.yaml
 
-    - name: Script install
-      ansible.builtin.shell: curl -sfL https://get.rke2.io | sh -
+#     - name: Script install
+#       ansible.builtin.shell: curl -sfL https://get.rke2.io | sh -
 
-    - name: Enable RKE2 service
-      ansible.builtin.systemd_service:
-        name: rke2-server
-        enabled: true
-        masked: no
+#     - name: Enable RKE2 service
+#       ansible.builtin.systemd_service:
+#         name: rke2-server
+#         enabled: true
+#         masked: no
 
-    - name: Start RKE2 service
-      #Throttle to ensure it will start with node_01 and wait it to finish before starting others
-      throttle: 1
-      ansible.builtin.systemd_service:
-        name: rke2-server
-        state: started
+#     - name: Start RKE2 service
+#       #Throttle to ensure it will start with node_01 and wait it to finish before starting others
+#       throttle: 1
+#       ansible.builtin.systemd_service:
+#         name: rke2-server
+#         state: started
 
-    - name: Get kubeconfig
-      ansible.builtin.fetch:
-        when: inventory_hostname == groups['first_server_node'][0]
-        src: /etc/rancher/rke2/rke2.yaml
-        dest: ../resources/kubeconfig.yaml
-        flat: yes
+#     - name: Get kubeconfig
+#       ansible.builtin.fetch:
+#         when: inventory_hostname == groups['first_server_node'][0]
+#         src: /etc/rancher/rke2/rke2.yaml
+#         dest: ../resources/kubeconfig.yaml
+#         flat: yes
         
-- name: Install RKE2 Agent
-  hosts: worker_nodes
-  become: true
-  become_user: root
+# - name: Install RKE2 Agent
+#   hosts: worker_nodes
+#   become: true
+#   become_user: root
+#   tasks:
+#     - name: Creates rke2 config directory
+#       ansible.builtin.file:
+#         path: /etc/rancher/rke2
+#         state: directory
+
+#     - name: Copy config file to agent node
+#       ansible.builtin.copy:
+#         src: ../resources/config-agent.yaml
+#         dest: /etc/rancher/rke2/config.yaml
+
+#     - name: Script install
+#       ansible.builtin.shell: curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" sh -
+
+#     - name: Enable RKE2 service
+#       ansible.builtin.systemd_service:
+#         name: rke2-server
+#         enabled: true
+#         masked: no
+
+#     - name: Start RKE2 service
+#       ansible.builtin.systemd_service:
+#         name: rke2-server
+#         state: started
+
+# #Doc : https://ranchermanager.docs.rancher.com/getting-started/quick-start-guides/deploy-rancher-manager/helm-cli
+# - name: Install Rancher
+#   become: true
+#   become_user: root
+#   hosts: first_server_node
+#   environment:
+#     KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+#   tasks:
+#     - name: Symlink kubectl
+#       ansible.builtin.shell: ln -s $(find /var/lib/rancher/rke2/data/ -name kubectl) /usr/local/bin/kubectl
+#     - name: Install helm
+#       ansible.builtin.shell: curl -#L https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+#     - name: Add Rancher repo
+#       ansible.builtin.shell: helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
+#     - name: Add Jetstack repo
+#       ansible.builtin.shell: helm repo add jetstack https://charts.jetstack.io
+#     - name: Update helm repos
+#       ansible.builtin.shell: helm repo update
+#     - name: Create cattle-system namespace
+#       ansible.builtin.shell: kubectl create namespace cattle-system
+#     - name: Apply cert-manager crd
+#       ansible.builtin.shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v"{{ lookup('env', 'CERTMANAGER_VERSION') }}"/cert-manager.crds.yaml
+#     - name: Install cert-manager chart
+#       ansible.builtin.shell: helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace
+#     - name: Pause
+#       ansible.builtin.pause:
+#         seconds: 60
+#     - name: Install Rancher chart
+#       ansible.builtin.shell: helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname={{ lookup('env', 'RANCHER_ADDRESS') }} --set replicas=1 --set bootstrapPassword={{ lookup('env', 'BOOTSTRAP_PASSWORD') }}
+
+# - name: Clean and config in localhost
+#   hosts: localhost
+#   tasks: 
+#     - name: Replace https://127.0.0.1:6443 by https://{{ lookup('env', 'RANCHER_ADDRESS') }}:6443 in kubeconfig.yaml
+#       ansible.builtin.replace:
+#         path: ../resources/kubeconfig.yaml
+#         regexp: 'https://127.0.0.1:6443'
+#         replace: "https://{{ lookup('env', 'RANCHER_ADDRESS') }}:6443"
+
+#     - name: Find config files to delete
+#       ansible.builtin.find:
+#         paths: ../resources/
+#         patterns: "config.*"
+#         use_regex: true
+#       register: files_to_delete
+
+#     - name: Deleting the config files
+#       file:
+#         path: "{{ item.path }}"
+#         state: absent
+#       with_items: "{{ files_to_delete.files }}"
+
+- name: Add-on configuration
+  hosts: nodes
   tasks:
-    - name: Creates rke2 config directory
-      ansible.builtin.file:
-        path: /etc/rancher/rke2
-        state: directory
-
-    - name: Copy config file to agent node
-      ansible.builtin.copy:
-        src: ../resources/config-agent.yaml
-        dest: /etc/rancher/rke2/config.yaml
-
-    - name: Script install
-      ansible.builtin.shell: curl -sfL https://get.rke2.io | INSTALL_RKE2_TYPE="agent" sh -
-
-    - name: Enable RKE2 service
-      ansible.builtin.systemd_service:
-        name: rke2-server
-        enabled: true
-        masked: no
-
-    - name: Start RKE2 service
-      ansible.builtin.systemd_service:
-        name: rke2-server
-        state: started
-
-#Doc : https://ranchermanager.docs.rancher.com/getting-started/quick-start-guides/deploy-rancher-manager/helm-cli
-- name: Install Rancher
-  become: true
-  become_user: root
-  hosts: first_server_node
-  environment:
-    KUBECONFIG: /etc/rancher/rke2/rke2.yaml
-  tasks:
-    - name: Symlink kubectl
-      ansible.builtin.shell: ln -s $(find /var/lib/rancher/rke2/data/ -name kubectl) /usr/local/bin/kubectl
-    - name: Install helm
-      ansible.builtin.shell: curl -#L https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-    - name: Add Rancher repo
-      ansible.builtin.shell: helm repo add rancher-latest https://releases.rancher.com/server-charts/latest
-    - name: Add Jetstack repo
-      ansible.builtin.shell: helm repo add jetstack https://charts.jetstack.io
-    - name: Update helm repos
-      ansible.builtin.shell: helm repo update
-    - name: Create cattle-system namespace
-      ansible.builtin.shell: kubectl create namespace cattle-system
-    - name: Apply cert-manager crd
-      ansible.builtin.shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v"{{ lookup('env', 'CERTMANAGER_VERSION') }}"/cert-manager.crds.yaml
-    - name: Install cert-manager chart
-      ansible.builtin.shell: helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace
-    - name: Pause
-      ansible.builtin.pause:
-        seconds: 60
-    - name: Install Rancher chart
-      ansible.builtin.shell: helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname={{ lookup('env', 'RANCHER_ADDRESS') }} --set replicas=1 --set bootstrapPassword={{ lookup('env', 'BOOTSTRAP_PASSWORD') }}
-
-- name: Clean and config in localhost
-  hosts: localhost
-  tasks: 
-    - name: Replace https://127.0.0.1:6443 by https://{{ lookup('env', 'RANCHER_ADDRESS') }}:6443 in kubeconfig.yaml
-      ansible.builtin.replace:
-        path: ../resources/kubeconfig.yaml
-        regexp: 'https://127.0.0.1:6443'
-        replace: "https://{{ lookup('env', 'RANCHER_ADDRESS') }}:6443"
-
-    - name: Find config files to delete
-      ansible.builtin.find:
-        paths: ../resources/
-        patterns: "config.*"
-        use_regex: true
-      register: files_to_delete
-
-    - name: Deleting the config files
-      file:
-        path: "{{ item.path }}"
-        state: absent
-      with_items: "{{ files_to_delete.files }}"
-
+    - name: Install nfs-commons in all nodes
+      become: true
+      ansible.builtin.apt:
+        name: nfs-common
+        update_cache: yes
+        state: latest
 
