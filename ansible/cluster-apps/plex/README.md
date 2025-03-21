@@ -1,5 +1,12 @@
 # Plex
-## Install
+
+## Ansible install
+Before launching the playbook, configure the python virutal_env. Cf the global [README](../../../README.md#ansible). 
+
+* To install launch the playbook `ansible-playbook cluster-apps/plex/install.yml`
+* Then you can go to the url `https://plex.<$DOMAIN_NAME>`. 
+
+## Manuel install
 First create the plex namespace and the pv/pvc for the NFS :
 - `kubectl create namespace plex`
 - `kubectl apply -f pv.yml`
@@ -13,6 +20,6 @@ More infos can be found in this [blog](https://www.plex.tv/blog/plex-pro-week-23
 
 ## Config
 To claim the Plex server, you will need to forward port :
-- `kubectl port-forward <POD_NAME> 32400:32400 -n plex`
+- `kubectl port-forward <POD_NAME> 32400:32400 -n <$NAMESPACE>`
 
 Then go in browser to this address `http://127.0.0.1:32400/web`.

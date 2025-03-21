@@ -1,0 +1,22 @@
+- name: Uninstall Plex
+  hosts: localhost
+  tasks:
+    - name: Remove plex repo
+      kubernetes.core.helm_repository:
+        name: bitnami
+        repo_url: "https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages"
+        state: absent
+
+    - name: Remove plex chart
+      kubernetes.core.helm:
+        name: "{{ lookup('env', 'NAMESPACE') }}"
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+        state: absent
+        wait: true
+
+    - name: Remove namespace
+      kubernetes.core.k8s:
+        state: absent
+        name: "{{ lookup('env', 'NAMESPACE') }}"
+        api_version: v1
+        kind: Namespace

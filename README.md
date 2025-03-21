@@ -44,7 +44,7 @@ You have to download ansible hardening devsec playbook :
 And to use kubernetes collection :
 - `ansible-galaxy collection install kubernetes.core`
 - Load virtual env python `source <PATH_TO_ENV>/bin/activate`
-- Install ansible-core `pip install ansible-core`
+- Install ansible-core `pip3 install ansible-core`
 - Install dependencies : `pip3 install kubernetes pyyaml`
 - Load the kubeconfig file `export KUBECONFIG=<PATH_TO_PROJECT>/ansible/resources/kubeconfig.yaml`
 
