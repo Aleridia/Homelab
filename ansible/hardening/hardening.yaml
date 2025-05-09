@@ -22,7 +22,7 @@
     - name: Configure auto-update
       become: true
       ansible.builtin.copy:
-        src: resources/20auto-upgrades
+        src: ../resources/20auto-upgrades
         dest: /etc/apt/apt.conf.d/20auto-upgrades
         owner: root
         group: root

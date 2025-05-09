@@ -6,7 +6,7 @@ Before launching the playbook, configure the python virutal_env. Cf the global [
 * To install launch the playbook `ansible-playbook cluster-apps/plex/install.yml`
 * Then you can go to the url `https://plex.<$DOMAIN_NAME>`. 
 
-## Manuel install
+## Manual install
 First create the plex namespace and the pv/pvc for the NFS :
 - `kubectl create namespace plex`
 - `kubectl apply -f pv.yml`
