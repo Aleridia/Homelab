@@ -12,6 +12,7 @@ It's here to help new people and get some review about architecture or software 
 - Raspberry pi 4
 - Ubiquiti U6-LR
 - x4 Dell optiplex 3060 i5 8500T 16go DDR4 2666mhz, m2 256go
+- Minisforum MS-01-S1390 
 
 ## Architecture
 ![Alt text](images/Network_archi.drawio.png?raw=true "Network architecture")
@@ -28,6 +29,8 @@ It's here to help new people and get some review about architecture or software 
 
 ## Ansible
 Before start you need to create an user for ansible in all machines with sudoers rights without password :
+- `sudo useradd -G sudo -m -s /bin/bash ansible`
+
 `sudo visudo` and add this at end of file: 
 ```
 #Allow ansible to sudo without password
@@ -46,7 +49,7 @@ And to use kubernetes collection :
 - Load virtual env python `source <PATH_TO_ENV>/bin/activate`
 - Install ansible-core `pip3 install ansible-core`
 - Install dependencies : `pip3 install kubernetes pyyaml`
-- Load the kubeconfig file `export KUBECONFIG=<PATH_TO_PROJECT>/ansible/resources/kubeconfig.yaml`
+- Load the kubeffconfig file `export KUBECONFIG=<PATH_TO_PROJECT>/ansible/resources/kubeconfig.yaml`
 
 Then run the playbook to harden machines :
 `ansible-playbook -i inventory.yml hardening/hardening.yaml -K`
@@ -65,7 +68,7 @@ Current : configured a DNS server to redirect *.<DOMAIN> to a node. Usefull to m
 
 ## Rancher
 Optiplex-3060-1,2 & 3 are the server nodes.
-Optiplex-3061-4 is the single worker node.
+Optiplex-3061-4 & minisfurom are the worker nodes.
 
 Why 3 server nodes ?
 - If I have only one and it crashes my cluster is fully down
