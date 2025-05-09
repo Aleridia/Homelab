@@ -11,7 +11,7 @@ It's here to help new people and get some review about architecture or software 
 - Wifi : Ubiquiti U6 Long-Range
 - Raspberry pi 4
 - Ubiquiti U6-LR
-- x4 Dell optiplex 3060 i5 8500T 8go DDR4 2666mhz, m2 256go
+- x4 Dell optiplex 3060 i5 8500T 16go DDR4 2666mhz, m2 256go
 
 ## Architecture
 ![Alt text](images/Network_archi.drawio.png?raw=true "Network architecture")
@@ -55,7 +55,7 @@ Enter the ansible user password for the managed nodes.
 After this you need to add the private ssh key to authenticate to the nodes : `eval "$(ssh-agent -s)"` and add the key : `ssh-add <PATH_TO_PRIVATE_KEY>`.
 
 Now install rke2 and Rancher in all the machines
-`ansible-playbook -i inventory.yml rke2/install.yaml -K`
+`ansible-playbook -i inventory.yml rke2/install.yaml`
 
 Note : you can uninstall rke2 & Rancher via the `rke2/uninstall.yaml` playbook.
 
@@ -125,12 +125,8 @@ For multiple tools I need mariadb instance.
 - [ ] Patch broken redirection (/ to /auth) in keycloak
 - [ ] Harden cluster (rke2, keycloak FIPS, RBAC, PSA)
 - [ ] Check if Cilium if worth it to add
-- [ ] Use NAS as storage
 - [ ] Add HAproxy
-- [ ] Enhance documentation
 - [ ] Add webserver to host blog & auto deploy in medium + stackpills
-- [ ] Configure custom resources for mariadb
-- [ ] Use NAS to configure NFS & link to seafile with pv/pvc custom (not longhorn because of performance)
 
 
 ## Sources

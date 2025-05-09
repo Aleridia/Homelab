@@ -8,7 +8,7 @@
     #Need to do this trick because I can make the ansible k8s module works and can't run the command with escaped quotes
     - name: SERVER Make a copy of rke2-config-server file
       ansible.builtin.copy:
-        src: ../resources/longhornflag.sh
+        src: ../../resources/longhornflag.sh
         dest: longhornflag.sh
         mode: '777'
 
