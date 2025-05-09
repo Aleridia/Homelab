@@ -7,7 +7,9 @@ nodes:
     node_03:
       ansible_host: "{{ lookup('env', 'NODE_03') }}"
     node_04:
-      ansible_host: "{{ lookup('env', 'NODE_04') }}"
+      ansible_host: "{{ lookup('env', 'NODE_04') }}"    
+    node_05:
+      ansible_host: "{{ lookup('env', 'NODE_05') }}"
   vars:
     ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
 first_server_node:
@@ -28,5 +30,7 @@ worker_nodes:
   hosts:
     node_04:
       ansible_host: "{{ lookup('env', 'NODE_04') }}"
+    node_05:
+      ansible_host: "{{ lookup('env', 'NODE_05') }}"
   vars:
     ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
