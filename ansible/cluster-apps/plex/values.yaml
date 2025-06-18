@@ -27,7 +27,8 @@ ingress:
   certificateSecret: ""
 
   # -- Custom annotations to put on the ingress resource
-  annotations: {}
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 
 pms:
   # -- The storage class to use when provisioning the pms config volume

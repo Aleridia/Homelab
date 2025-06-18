@@ -65,6 +65,8 @@ Note : you can uninstall rke2 & Rancher via the `rke2/uninstall.yaml` playbook.
 ## Load balancer
 
 Current : configured a DNS server to redirect *.<DOMAIN> to a node. Usefull to manage ingress.
+To improve : get a raspberry and install debian + haproxy to make a correct LB.
+Helpers : https://www.it-connect.fr/mise-en-place-dun-serveur-haproxy/ + https://github.com/nicogigi92/minilab/blob/main/ansible/loadbalancer/haproxy/templates/haproxy.cfg.j2
 
 ## Rancher
 Optiplex-3060-1,2 & 3 are the server nodes.
