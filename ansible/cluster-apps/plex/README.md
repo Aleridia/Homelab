@@ -23,3 +23,10 @@ To claim the Plex server, you will need to forward port :
 - `kubectl port-forward <POD_NAME> 32400:32400 -n <$NAMESPACE>`
 
 Then go in browser to this address `http://127.0.0.1:32400/web`.
+
+## Upgrading
+When upgrading with Helm, some problems with pv/pvc can occur. To fix it :
+1. Delete the pvc `k delete pvc nfs -n <NAMESPACE>`
+If the pvc don't want to be delete, patch it : `kubectl patch pvc nfs -p '{"metadata":{"finalizers":null}}' -n <NAMESPACE>`
+2. Put the pv from `Retain` to `Available` : `k patch pv nfs -p '{"spec":{"claimRef": null}}' -n <NAMESPACE>`
+3. Create the pvc `k apply -f pvc.yml`
