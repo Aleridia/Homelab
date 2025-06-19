@@ -171,12 +171,12 @@ minecraftServer:
   # This must be overridden, since we can't accept this for the user.
   eula: "TRUE"
   # One of: LATEST, SNAPSHOT, or a specific version (ie: "1.7.9").
-  version: "1.21.1"
+  version: "1.21.5"
   ## The type of Minecraft server to run, check for related settings below
   ## Common types: "VANILLA", "FABRIC", "FORGE", "SPIGOT", "BUKKIT", "PAPER",
   ## "FTBA", "SPONGEVANILLA", "AUTO_CURSEFORGE"
   ## ref: https://docker-minecraft-server.readthedocs.io/en/latest/types-and-platforms
-  type: "FABRIC"
+  type: "SPIGOT"
   # If type is set to FORGE, this sets the version; this is ignored if forgeInstallerUrl is set
   forgeVersion:
   # If type is set to FORGE, this sets the URL to download the Forge installer
@@ -210,7 +210,7 @@ minecraftServer:
   # A comma-separated list of player names to whitelist.
   whitelist:
   # A comma-separated list of player names who should be admins.
-  ops:
+  ops: Aleridia
   # A server icon URL for server listings. Auto-scaled and transcoded.
   icon:
   # Max connected players.
@@ -302,7 +302,7 @@ minecraftServer:
 
   # List with URLs and paths to jar files, additionally may be a directory with jars
   # This works for both mods and plugins depending on server type
-  modUrls: ["https://cdn.modrinth.com/data/P7dR8mSH/versions/aHOmYIWr/fabric-api-0.115.1%2B1.21.1.jar", "https://cdn.modrinth.com/data/MBAkmtvl/versions/TAOBvHf7/balm-fabric-1.21.1-21.0.31.jar","https://cdn.modrinth.com/data/lhGA9TYQ/versions/Wto0RchG/architectury-13.0.8-fabric.jar","https://cdn.modrinth.com/data/LOpKHB2A/versions/Yj18WfKx/waystones-fabric-1.21.1-21.1.12.jar","https://cdn.modrinth.com/data/MdwFAVRL/versions/v77SHSXW/Cobblemon-fabric-1.6.1%2B1.21.1.jar","https://cdn.modrinth.com/data/CaOWby9K/versions/dB1jjpfx/MythsAndLegends-fabric-1.7.2.jar","https://cdn.modrinth.com/data/CBfM2yw7/versions/vgW4CsE7/rctapi-fabric-1.21.1-0.10.12-beta.jar","https://cdn.modrinth.com/data/ohNO6lps/versions/NqVx7ywO/ForgeConfigAPIPort-v21.1.3-1.21.1-Fabric.jar","https://cdn.modrinth.com/data/lRwTUnD7/versions/geGNiCrW/rctmod-fabric-1.21.1-0.13.16-beta.jar","https://cdn.modrinth.com/data/ZLu8WiYO/versions/PUA6THXt/cobblemonridingfabric-1.3.6%20%281%29.jar","https://cdn.modrinth.com/data/ItmVb4zY/versions/a4uC7KKB/Cobbreeding-fabric-1.8.9.jar","https://cdn.modrinth.com/data/CgGEe1h3/versions/Gx8eh5qJ/easy_npc-fabric-1.21.1-5.9.0.jar"]
+  modUrls: ["https://cdn.modrinth.com/data/gMMDcC2d/versions/sREI02mm/Oneblock-1.3.3.jar","https://cdn.modrinth.com/data/3wmN97b8/versions/yb4cdN2X/multiverse-core-5.0.2.jar","https://cdn.modrinth.com/data/qvdtDX3s/versions/ih9Pn2VR/multiverse-inventories-5.0.2.jar","https://cdn.modrinth.com/data/8VMk6P0I/versions/EkQ7Vwln/multiverse-portals-5.0.3.jar","https://cdn.modrinth.com/data/vtawPsTo/versions/8A7Nimis/multiverse-netherportals-5.0.2.jar","https://cdn.modrinth.com/data/WuErDeI1/versions/TzT7j6cS/multiverse-signportals-5.0.0.jar"]
   
   pluginUrls: []
 

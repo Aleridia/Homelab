@@ -186,3 +186,12 @@
         update_cache: yes
         state: latest
 
+- name: Install let's encrypt issuer
+  hosts: localhost
+  tasks:
+    - name: Install let's encrypt issuer
+      vars:
+        email: "{{ lookup('env', 'EMAIL') }}"
+      kubernetes.core.k8s:
+        state: present
+        template: "certificates/issuer.j2"
