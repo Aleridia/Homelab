@@ -15,3 +15,6 @@ After this, to create a certificate :
 5. Don't forget to redirect port in the router
 
 Source : https://help.ovhcloud.com/csm/en-public-cloud-kubernetes-secure-nginx-ingress-cert-manager?id=kb_article_view&sysparm_article=KB0049952
+
+To generate a certificate :
+https://ongkhaiwei.medium.com/generate-lets-encrypt-certificate-with-dns-challenge-and-namecheap-e5999a040708

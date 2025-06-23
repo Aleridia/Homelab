@@ -104,8 +104,8 @@ Here are all the helm repo dependencies that will be used :
 ### Keycloak
 This tool is used by all my other tool to be authenticated.
 
-* To install launch the playbook `ansible-playbook cluster-apps/keycloak/install.yaml`
-* Then you can go to the url `https://keycloak.<$DOMAIN_NAME>/auth`. Redirection won't work, will be patched later.
+To install launch the playbook `ansible-playbook cluster-apps/keycloak/install.yaml`.
+To have details about install, please refer to [README](ansible/cluster-apps/keycloak/README.md).
 
 ## Mariadb
 For multiple tools I need mariadb instance.
@@ -122,13 +122,11 @@ For multiple tools I need mariadb instance.
 [Seafile](https://manual.seafile.com/latest/) is a file-hosting and sharing software.
 [Github](https://github.com/300481/seafile-server) & [Helm](https://artifacthub.io/packages/helm/phybros-helm-charts/seafile) chart.
 
-* Launch the playbook `ansible-playbook cluster-apps/seafile/install.yaml`
-* Add `CSRF_TRUSTED_ORIGINS = ["https://seafile.<$DOMAIN_NAME>"]` to the /otp/seafile/conf/seahub_settings.py config file then delete pod. You need to modify it only once, it's persistent for all the next installation (unless you delete the seafile pv). [GH issue](https://github.com/haiwen/seafile/issues/2707).
+* Launch the playbook `ansible-playbook cluster-apps/seafile/install.yaml`.
+* Then follow the [README](ansible/cluster-apps/seafile/README.md) instructions.
 
 
 ## TODO
-- [ ] Patch broken redirection (/ to /auth) in keycloak
-- [ ] Harden cluster (rke2, keycloak FIPS, RBAC, PSA)
 - [ ] Check if Cilium if worth it to add
 - [ ] Add HAproxy
 - [ ] Add webserver to host blog & auto deploy in medium + stackpills
