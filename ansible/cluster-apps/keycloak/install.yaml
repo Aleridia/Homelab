@@ -1,36 +1,23 @@
 - name: Setup installation
   hosts: localhost
   tasks:
-    - name: Add keycloak repo
-      kubernetes.core.helm_repository:
-        name: codecentric
-        repo_url: "https://codecentric.github.io/helm-charts"
-    - name: Create the namespace
-      kubernetes.core.k8s:
-        name: "{{ lookup('env', 'NAMESPACE') }}"
-        api_version: v1
-        kind: Namespace
-        state: present
 
-- name: Install mariadb
-  ansible.builtin.import_playbook: ../mariadb/install.yaml
-
-- name: Install keycloak
-  hosts: localhost
-  tasks:
-    - name: Apply keycloak chart
-      vars:
-        mariadb_hostname: "mariadb-{{ lookup('env', 'NAMESPACE') }}"
-        mariadb_username: "{{ lookup('env', 'MARIADB_USERNAME') }}"
-        mariadb_password: "{{ lookup('env', 'MARIADB_PASSWORD') }}"
-        mariadb_database_name: "{{ lookup('env', 'MARIADB_DATABASE') }}"
-        keycloak_username: "{{ lookup('env', 'KEYCLOAK_USERNAME') }}"
-        keycloak_admin_password: "{{ lookup('env', 'KEYCLOAK_ADMIN_PASSWORD') }}"
-        keycloak_hostname: "keycloak.{{ lookup('env', 'DOMAIN_NAME') }}"
-        keycloak_hostname_java: "https://keycloak.{{ lookup('env', 'DOMAIN_NAME') }}"
-      kubernetes.core.helm:
-        name: "keycloak"
-        chart_ref: codecentric/keycloakx
-        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
-        state: present
-        values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
+  # Need to pull it because of OCI address
+  - name: Pull Keycloak chart from OCI
+    ansible.builtin.shell: "helm pull oci://registry-1.docker.io/bitnamicharts/keycloak --untar --untardir /tmp/"
+  
+  - name: Install Keycloak from pulled chart
+    vars:
+      keycloak_hostname: "keycloak.{{ lookup('env', 'DOMAIN_NAME') }}"
+      keycloak_admin_hostname: "{{ lookup('env', 'KEYCLOAK_ADMIN_HOSTNAME') }}"
+      keycloak_admin_hostname_frontend: "https://{{ lookup('env', 'KEYCLOAK_ADMIN_HOSTNAME') }}"
+      hostname: "{{ lookup('env', 'DOMAIN_NAME') }}"
+      keycloak_admin_user: "{{ lookup('env', 'KEYCLOAK_ADMIN_USERNAME') }}"
+      keycloak_admin_password: "{{ lookup('env', 'KEYCLOAK_ADMIN_PASSWORD') }}"
+    kubernetes.core.helm:
+      name: "{{ lookup('env', 'NAMESPACE') }}"
+      chart_ref: /tmp/keycloak/
+      release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+      state: present
+      create_namespace: true
+      values: "{{ lookup('template', 'values.yaml') | from_yaml }}"

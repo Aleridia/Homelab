@@ -1,22 +1,9 @@
-#Not deleting NS and PV/PVC because I don't want to lose all my data with a dump mistake
-#If I want to delete all, I'll do it manually
-- name: Uninstall keycloak
+- name: Uninstall Keycloak
   hosts: localhost
   tasks:
-    - name: Remove keycloak repo
-      kubernetes.core.helm_repository:
-        name: keycloak
-        repo_url: "https://codecentric.github.io/helm-charts"
-        state: absent
-    - name: Remove keycloak chart
-      kubernetes.core.helm:
-        name: "keycloak"
+   - name: Remove Keycloak chart
+     kubernetes.core.helm:
+        name: "{{ lookup('env', 'NAMESPACE') }}"
         release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
         state: absent
         wait: true
-
-#Remove mariadb
-- name: Uninstall mariadb
-  ansible.builtin.import_playbook: ../mariadb/uninstall.yaml
-
-   
