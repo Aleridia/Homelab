@@ -1,35 +1,88 @@
-# Default values for seafile-server.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
 seafile:
-  image: docker.io/seafileltd/seafile-mc:11.0.12
-  pause: false
-  database:
-    hostname: {{ mariadb_hostname | mandatory }}
-    rootPasswordSecret:
-      name: {{ mariadb_secret_name | mandatory }}
-      key: mariadb-root-password
-  environment:
+  configs:
+    image: seafileltd/seafile-mc:12.0-latest
+    seafileDataVolume:
+      hostPath: /opt/seafile-data
+      storage: 10Gi
+  secret:
+    seafileAdminPassword: "{{ seafile_admin_password | mandatory }}"
+    mysqlRootPassword: "{{ mysql_root_password | mandatory }}"
+    jwtPrivateKey: "{{ jwt_private_key | mandatory }}"
+    mysqlDbPassword: "{{ mysql_database_password | mandatory }}"
+
+  ingress:
+    # -- Specify if an ingress resource for the pms server should be created or not
+    enabled: true
+
+    # -- The ingress class that should be used
+    ingressClassName: "nginx"
+
+    # -- The url to use for the ingress reverse proxy to point at this pms instance
+    url: "{{ ingress_url | mandatory }}"
+
+    # -- Custom annotations to put on the ingress resource
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+
+  service:
+    type: ClusterIP
+  env:
+    DB_HOST: mariadb-seafile
+    DB_PORT: "3306"
+    DB_USER: "{{ database_user | mandatory }}"
+    ENABLE_SEADOC: "false"
+    INIT_SEAFILE_ADMIN_EMAIL: "{{ seafile_admin_mail | mandatory }}"
+    SEADOC_SERVER_URL: ""
+    SEAFILE_LOG_TO_STDOUT: "true"
+    SEAFILE_MYSQL_DB_CCNET_DB_NAME: ccnet_db
+    SEAFILE_MYSQL_DB_SEAFILE_DB_NAME: seafile_db
+    SEAFILE_MYSQL_DB_SEAHUB_DB_NAME: seahub_db
+    SEAFILE_SERVER_HOSTNAME: "{{ ingress_url | mandatory }}"
+    SEAFILE_SERVER_PROTOCOL: https
+    SITE_ROOT: /
+    TIME_ZONE: UTC
+  extraEnv: []
+  extraResources: {}
+  extraVolumes: []
+  initMode: true
+  presetEnv:
   - name: TIME_ZONE
-    value: "Etc/UTC"
-  - name: SEAFILE_ADMIN_EMAIL
-    value: {{ seafile_email | mandatory }}
-  - name: SEAFILE_ADMIN_PASSWORD
-    value: {{ seafile_admin_password | mandatory }}
+    value: UTC
+  - name: SEAFILE_LOG_TO_STDOUT
+    value: "true"
+  - name: SITE_ROOT
+    value: /
   - name: SEAFILE_SERVER_HOSTNAME
-    value: {{ seafile_hostname | mandatory }}
-
-# nodeSelector: {}
-
-ingress:
-  annotations:
-    # use NGINX Ingress Controller
-    kubernetes.io/ingress.class: "nginx"
-    # # use Cert-Manager for LetsEncrypt Certificates
-    # cert-manager.io/issuer: "letsencrypt-prod"
-    # cert-manager.io/cluster-issuer: "letsencrypt-prod"
-  host: {{ seafile_hostname | mandatory }}
-  tls:
-    host: {{ seafile_hostname | mandatory }}
-    secretName: seafile-tls
+  - name: SEAFILE_SERVER_PROTOCOL
+    value: https
+  - name: DB_HOST
+  - name: DB_PORT
+    value: "3306"
+  - name: DB_USER
+    value: seafile
+  - name: SEAFILE_MYSQL_DB_CCNET_DB_NAME
+    value: ccnet_db
+  - name: SEAFILE_MYSQL_DB_SEAFILE_DB_NAME
+    value: seafile_db
+  - name: SEAFILE_MYSQL_DB_SEAHUB_DB_NAME
+    value: seahub_db
+  - name: ENABLE_SEADOC
+    value: "false"
+  - allowEmpty: true
+    name: SEADOC_SERVER_URL
+  - initValue: true
+    name: INIT_SEAFILE_ADMIN_EMAIL
+  presetSecretsMap:
+  - key: INIT_SEAFILE_MYSQL_ROOT_PASSWORD
+    name: DB_ROOT_PASSWD
+    secret: seafile-secret
+  - key: JWT_PRIVATE_KEY
+    name: JWT_PRIVATE_KEY
+    secret: seafile-secret
+  - key: SEAFILE_MYSQL_DB_PASSWORD
+    name: DB_PASSWORD
+    secret: seafile-secret
+  - key: INIT_SEAFILE_ADMIN_PASSWORD
+    name: INIT_SEAFILE_ADMIN_PASSWORD
+    secret: seafile-secret
+  secretsMap: {}
