@@ -1,10 +1,18 @@
 - name: Setup installation
   hosts: localhost
   tasks:
-    - name: Add seafile repo
-      kubernetes.core.helm_repository:
-        name: seafile
-        repo_url: "https://300481.github.io/charts/"
+
+    # - name: Add seafile repo
+    #   kubernetes.core.helm_repository:
+    #     name: seafile
+    #     repo_url: "https://haiwen.github.io/seafile-helm-chart/repo"
+
+    # Until my PR is not merged, don't pull the official repo and take the changes from my github
+    - name: Clone a repo with separate git directory
+      ansible.builtin.git:
+        repo: 'https://github.com/Aleridia/seafile-helm-chart'
+        dest: /tmp/seafile
+
     - name: Create the namespace
       kubernetes.core.k8s:
         name: "{{ lookup('env', 'NAMESPACE') }}"
@@ -18,16 +26,18 @@
 - name: Install seafile
   hosts: localhost
   tasks:
-    - name: Apply seafile chart
+    - name: Install chart
       vars:
-        mariadb_hostname: "mariadb-{{ lookup('env', 'NAMESPACE') }}"
-        mariadb_secret_name: "mariadb-secret-{{ lookup('env', 'NAMESPACE') }}"
-        seafile_email: "{{ lookup('env', 'SEAFILE_EMAIL') }}"
         seafile_admin_password: "{{ lookup('env', 'SEAFILE_ADMIN_PASSWORD') }}"
-        seafile_hostname: "seafile.{{ lookup('env', 'DOMAIN_NAME') }}"
+        mysql_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
+        jwt_private_key: "{{ lookup('env', 'JWT_PRIVATE_KEY') }}"
+        mysql_database_password: "{{ lookup('env', 'MARIADB_PASSWORD') }}"
+        ingress_url: "seafile.{{ lookup('env', 'DOMAIN_NAME') }}"
+        database_user: "{{ lookup('env', 'MARIADB_USERNAME') }}"
+        seafile_admin_mail: "{{ lookup('env', 'EMAIL') }}"
       kubernetes.core.helm:
         name: "seafile"
-        chart_ref: seafile/seafile
+        chart_ref: "/tmp/seafile/template/12.0/ce"
         release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
         state: present
         values: "{{ lookup('template', 'values.yaml') | from_yaml }}"

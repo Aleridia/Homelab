@@ -120,7 +120,6 @@ For multiple tools I need mariadb instance.
 
 ### Seafile
 [Seafile](https://manual.seafile.com/latest/) is a file-hosting and sharing software.
-[Github](https://github.com/300481/seafile-server) & [Helm](https://artifacthub.io/packages/helm/phybros-helm-charts/seafile) chart.
 
 * Launch the playbook `ansible-playbook cluster-apps/seafile/install.yaml`.
 * Then follow the [README](ansible/cluster-apps/seafile/README.md) instructions.
@@ -130,7 +129,7 @@ For multiple tools I need mariadb instance.
 - [ ] Check if Cilium if worth it to add
 - [ ] Add HAproxy
 - [ ] Add webserver to host blog & auto deploy in medium + stackpills
-
+- [ ] Adress to accept for the ACME challenge : https://<DNS-NAME>/.well-known/acme-challenge/<43-Characters>
 
 ## Sources
 - To start homelab : https://github.com/veteranbv/Homelab-Blueprint

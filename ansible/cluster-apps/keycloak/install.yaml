@@ -21,3 +21,8 @@
       state: present
       create_namespace: true
       values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
+  
+  - name: Nginx forward headers
+    kubernetes.core.k8s:
+      state: present
+      src: configmap.yaml
