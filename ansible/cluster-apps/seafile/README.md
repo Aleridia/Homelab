@@ -41,3 +41,4 @@ Source : https://forum.seafile.com/t/setting-up-keycloak-for-sso/22520
 ## Thing to know
 - If you got this message `2025-06-24 13:38:01 This is an idle script (infinite loop) to keep container running.` it's probably a DB problem. So try to delete and then reinstall the database before reinstalling Seafile. This occur generally if you want to install a new Seafile chart withtout upgrading
 - If you got this error `Sorry, but the requested page is unavailable due to a server hiccup.` it's because of a bad login/password
+- If you got an error while uploading a file in Firefox with linux : don't worry it works with phone or on windows
