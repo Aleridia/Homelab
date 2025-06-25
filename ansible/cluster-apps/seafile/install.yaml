@@ -35,6 +35,8 @@
         ingress_url: "seafile.{{ lookup('env', 'DOMAIN_NAME') }}"
         database_user: "{{ lookup('env', 'MARIADB_USERNAME') }}"
         seafile_admin_mail: "{{ lookup('env', 'EMAIL') }}"
+        nfs_server_ip: "{{ lookup('env', 'NFS_SERVER_IP') }}"
+        nfs_server_path_seafile: "{{ lookup('env', 'NFS_SERVER_PATH_SEAFILE') }}"
       kubernetes.core.helm:
         name: "seafile"
         chart_ref: "/tmp/seafile/template/12.0/ce"

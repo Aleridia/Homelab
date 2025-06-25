@@ -14,7 +14,7 @@
     - name: Install pv
       vars:
         nfs_server_ip: "{{ lookup('env', 'NFS_SERVER_IP') }}"
-        nfs_server_path: "{{ lookup('env', 'NFS_SERVER_PATH') }}"
+        nfs_server_path_plex: "{{ lookup('env', 'NFS_SERVER_PATH_PLEX') }}"
       kubernetes.core.k8s:
         state: present
         template: 'pv.yml'
