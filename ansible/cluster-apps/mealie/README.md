@@ -16,3 +16,6 @@ Do not forget to create the client in the SSO with the following fields:
 - Valid redirect URIs : https://mealie.<DOMAIN_NAME>/*
 - Web origins : https://mealie.<DOMAIN_NAME>
 - Client authentication : On
+
+## Compatibility with bring
+https://github.com/felixschndr/mealie-bring-api
