@@ -1,0 +1,109 @@
+image:
+  repository: ghcr.io/mealie-recipes/mealie
+  tag: v2.8.0@sha256:63aef46d90975d9cf9c0fdb9399fc2fe36acd222e1db6be99c504b9ccdbee967
+  pullPolicy: IfNotPresent
+mealie:
+  frontend:
+    theme:
+      light_primary: "#E58325"
+      light_accent: "#007A99"
+      light_secondary: "#973542"
+      light_success: "#43A047"
+      light_info: "#1976D2"
+      light_warning: "#FF6D00"
+      light_error: "#EF5350"
+      dark_primary: "#E58325"
+      dark_accent: "#007A99"
+      dark_secondary: "#973542"
+      dark_success: "#43A047"
+      dark_info: "#1976D2"
+      dark_warning: "#FF6D00"
+      dark_error: "#EF5350"
+  api:
+    general:
+      allow_signup: true
+      default_group: Home
+      base_url: ""
+      token_time: 48
+    security:
+      max_login_attempts: 5
+      user_lockout_time: 24
+    webworkers:
+      workers_per_core: 1
+      max_workers: 1
+      web_concurrency: 1
+    oidc:
+      auth_enabled: true
+      signup_enabled: true
+      configuration_url: "{{ oidc_url | mandatory }}"
+      client_id: "{{ client_id | mandatory }}"
+      client_secret: "{{ client_secret | mandatory }}"
+      user_group: ""
+      admin_group: ""
+      auto_redirect: true
+      provider_name: "SSO"
+      remember_me: true
+workload:
+  main:
+    podSpec:
+      containers:
+        main:
+          envFrom:
+            - secretRef:
+                name: frontend
+            - secretRef:
+                name: api
+service:
+  main:
+    ports:
+      main:
+        port: 10018
+        protocol: http
+
+persistence:
+  data:
+    enabled: true
+    type: pvc
+    accessModes: ReadWriteMany
+    size: 50Gi
+    targetSelector:
+      main:
+        main:
+          mountPath: /app/data
+
+  nltk:
+    enabled: true
+    type: emptyDir
+    size: 5Gi
+    targetSelector:
+      main:
+        main:
+          mountPath: /nltk_data
+cnpg:
+  main:
+    enabled: false
+    user: "{{ cnpg_user | mandatory }}"
+    database: "{{ cnpg_database | mandatory }}"
+
+ingress:
+  mealie-ingress:
+    primary: true
+    namespace: "{{ mealie_namespace | mandatory }}"
+    enabled: true
+    required: true
+    ingressClassName: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-stagging"
+    tls:
+      - hosts: 
+          - "{{ mealie_hostname | mandatory }}"
+        secretName: "{{ mealie_hostname_secret | mandatory }}"
+    hosts:
+      - host: "{{ mealie_hostname | mandatory }}"
+        paths:
+          - path: /
+            pathType: Prefix
+            overrideService:
+              expandObjectName: false
+              name: mealie
+              port: 10018
