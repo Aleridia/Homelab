@@ -6,5 +6,5 @@ metadata:
 data:
   use-forwarded-headers: "true"
   forwarded-for-header: "X-Forwarded-For"
-  #Usef for seafile
+  #Used for seafile
   proxy-body-size: 0

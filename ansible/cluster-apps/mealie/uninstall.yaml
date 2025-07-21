@@ -1,0 +1,9 @@
+- name: Uninstall Keycloak
+  hosts: localhost
+  tasks:
+   - name: Remove Mealie chart
+     kubernetes.core.helm:
+        name: "{{ lookup('env', 'NAMESPACE') }}"
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+        state: absent
+        wait: true

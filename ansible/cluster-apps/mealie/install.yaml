@@ -1,0 +1,32 @@
+- name: Setup installation
+  hosts: localhost
+  tasks:
+
+  # Need to pull it because of OCI address
+  - name: Pull Mealie chart from OCI
+    ansible.builtin.shell: "helm pull oci://tccr.io/truecharts/mealie --untar --untardir /tmp/"
+
+  - name: Create the namespace
+    kubernetes.core.k8s:
+      name: "{{ lookup('env', 'NAMESPACE') }}"
+      api_version: v1
+      kind: Namespace
+      state: present
+
+  - name: Install Mealie from pulled chart
+    vars:
+      oidc_url: "https://keycloak.{{ lookup('env', 'DOMAIN_NAME') }}/realms/{{ lookup('env', 'REALM_NAME') }}/.well-known/openid-configuration"
+      client_id: "{{ lookup('env', 'MEALIE_CLIENT_ID') }}"
+      client_secret: "{{ lookup('env', 'MEALIE_CLIENT_SECRET') }}"
+      cnpg_user: "{{ lookup('env', 'MEALIE_CNPG_USER') }}"
+      cnpg_database: "{{ lookup('env', 'MEALIE_CNPG_DATABASE') }}"
+      mealie_hostname: "mealie.{{ lookup('env', 'DOMAIN_NAME') }}"
+      mealie_hostname_secret: "{{ lookup('env', 'MEALIE_TLS_SECRET') }}"
+      mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+    kubernetes.core.helm:
+      name: "{{ lookup('env', 'NAMESPACE') }}"
+      chart_ref: /tmp/mealie/
+      release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+      state: present
+      create_namespace: true
+      values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
