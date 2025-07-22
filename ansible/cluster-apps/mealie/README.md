@@ -18,4 +18,6 @@ Do not forget to create the client in the SSO with the following fields:
 - Client authentication : On
 
 ## Compatibility with bring
-https://github.com/felixschndr/mealie-bring-api
+To use Bring without internet input, I use [this project](https://github.com/felixschndr/mealie-bring-api).
+
+Do not forget to follow instruction in the project's README to configure Mealie, with this address `http://mealie-bring-api/`.

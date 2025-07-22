@@ -1,9 +1,33 @@
-- name: Uninstall Keycloak
+- name: Uninstall Mealie
   hosts: localhost
   tasks:
-   - name: Remove Mealie chart
-     kubernetes.core.helm:
-        name: "{{ lookup('env', 'NAMESPACE') }}"
-        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+    - name : Uninstall Mealie chart
+      kubernetes.core.helm:
+          name: "{{ lookup('env', 'NAMESPACE') }}"
+          release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+          state: absent
+          wait: true
+
+    - name : Uninstall the secret for Mealie offline bring API
+      vars:
+        bring_username: "{{ lookup('env', 'BRING_USERNAME') }}"
+        bring_password: "{{ lookup('env', 'BRING_PASSWORD') }}"
+        mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+      kubernetes.core.k8s:
         state: absent
-        wait: true
+        definition: "{{ lookup('template', 'bring-api/secret.yaml') | from_yaml }}"
+    
+    - name : Uninstall the service for Mealie offline bring API
+      vars:
+        mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('template', 'bring-api/service.yaml') | from_yaml }}"
+    
+    - name : Uninstall the deployment for Mealie offline bring API
+      vars:
+        mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+        bring_list_name: "{{ lookup('env', 'BRING_LIST_NAME') }}"
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('template', 'bring-api/deployment.yaml') | from_yaml }}"
