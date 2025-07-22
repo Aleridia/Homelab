@@ -30,3 +30,28 @@
       state: present
       create_namespace: true
       values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
+
+  - name : Install the secret for Mealie offline bring API
+    vars:
+      bring_username: "{{ lookup('env', 'BRING_USERNAME') }}"
+      bring_password: "{{ lookup('env', 'BRING_PASSWORD') }}"
+      mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+    kubernetes.core.k8s:
+      state: present
+      definition: "{{ lookup('template', 'bring-api/secret.yaml') | from_yaml }}"
+  
+  - name : Install the service for Mealie offline bring API
+    vars:
+      mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+    kubernetes.core.k8s:
+      state: present
+      definition: "{{ lookup('template', 'bring-api/service.yaml') | from_yaml }}"
+  
+  - name : Install the deployment for Mealie offline bring API
+    vars:
+      mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+      bring_list_name: "{{ lookup('env', 'BRING_LIST_NAME') }}"
+    kubernetes.core.k8s:
+      state: present
+      definition: "{{ lookup('template', 'bring-api/deployment.yaml') | from_yaml }}"
+
