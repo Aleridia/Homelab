@@ -1,0 +1,31 @@
+- name: Installing Vaultwarden
+  hosts: localhost
+  tasks:
+    - name : Install the deployment
+      vars:
+        vaultwarden_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+        domain : "https://vaultwarden.{{ lookup('env', 'DOMAIN_NAME') }}"
+        admin_token : "{{ lookup('env', 'ADMIN_TOKEN') }}"
+        smtp_host : "{{ lookup('env', 'SMTP_HOST') }}"
+        smtp_from : "{{ lookup('env', 'VAULTWARDEN_SMTP_FROM') }}"
+        smtp_port : "{{ lookup('env', 'SMTP_PORT') }}"
+        smtp_username : "{{ lookup('env', 'SMTP_USERNAME') }}"
+        smtp_password : "{{ lookup('env', 'SMTP_PASSWORD') }}"
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('template', 'deployment.yaml') | from_yaml }}"
+    
+    - name : Install the service
+      vars:
+        vaultwarden_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('template', 'service.yaml') | from_yaml }}"
+    
+    - name : Install the ingress
+      vars:
+        host : "vaultwarden.{{ lookup('env', 'DOMAIN_NAME') }}"
+        vaultwarden_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('template', 'ingress.yaml') | from_yaml }}"

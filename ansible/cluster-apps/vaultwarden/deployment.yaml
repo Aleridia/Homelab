@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultwarden
+  labels:
+    app: vaultwarden
+  namespace: "{{ vaultwarden_namespace | mandatory }}"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vaultwarden
+  template:
+    metadata:
+      labels:
+        app: vaultwarden
+    spec:
+      containers:
+        - name: vaultwarden
+          image: vaultwarden/server:latest
+          ports:
+            - containerPort: 80
+          env:
+            - name: DOMAIN
+              value: "{{ domain | mandatory }}"
+            - name: SIGNUPS_ALLOWED
+              value: "'false'"
+            - name: SIGNUPS_VERIFY
+              value: "'true'"
+            - name: ADMIN_TOKEN
+              value: "{{ admin_token | mandatory }}"
+            - name: PASSWORD_HINTS_ALLOWED
+              value: "'false'"
+            - name: SMTP_HOST
+              value: "{{ smtp_host | mandatory }}"
+            - name: SMTP_FROM
+              value: "{{ smtp_from | mandatory }}"
+            - name: SMTP_PORT
+              value: "{{ smtp_port | mandatory }}"
+            - name: SMTP_SECURITY
+              value: "force_tls"
+            - name: SMTP_USERNAME
+              value: "{{ smtp_username | mandatory }}"
+            - name: SMTP_PASSWORD
+              value: "{{ smtp_password | mandatory }}"
