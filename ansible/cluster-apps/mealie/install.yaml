@@ -23,6 +23,8 @@
       mealie_hostname: "mealie.{{ lookup('env', 'DOMAIN_NAME') }}"
       mealie_hostname_secret: "{{ lookup('env', 'MEALIE_TLS_SECRET') }}"
       mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
+      user_group : "/{{ lookup('env', 'KEYCLOAK_NOT_HOME_GROUP') }}"
+      admin_group : "/{{ lookup('env', 'KEYCLOAK_HOME_GROUP') }}"
     kubernetes.core.helm:
       name: "{{ lookup('env', 'NAMESPACE') }}"
       chart_ref: /tmp/mealie/
@@ -30,6 +32,8 @@
       state: present
       create_namespace: true
       values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
+    tags:
+      - install
 
   - name : Install the secret for Mealie offline bring API
     vars:

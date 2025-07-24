@@ -17,6 +17,8 @@ Do not forget to create the client in the SSO with the following fields:
 - Web origins : https://mealie.<DOMAIN_NAME>
 - Client authentication : On
 
+Then you need to make some ClientScope. Refer to the [Github discussion](https://github.com/mealie-recipes/mealie/discussions/3428).
+
 ## Compatibility with bring
 To use Bring without internet input, I use [this project](https://github.com/felixschndr/mealie-bring-api).
 

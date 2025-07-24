@@ -2,22 +2,6 @@ image:
   repository: ghcr.io/mealie-recipes/mealie
   pullPolicy: IfNotPresent
 mealie:
-  frontend:
-    theme:
-      light_primary: "#E58325"
-      light_accent: "#007A99"
-      light_secondary: "#973542"
-      light_success: "#43A047"
-      light_info: "#1976D2"
-      light_warning: "#FF6D00"
-      light_error: "#EF5350"
-      dark_primary: "#E58325"
-      dark_accent: "#007A99"
-      dark_secondary: "#973542"
-      dark_success: "#43A047"
-      dark_info: "#1976D2"
-      dark_warning: "#FF6D00"
-      dark_error: "#EF5350"
   api:
     general:
       allow_signup: true
@@ -37,8 +21,8 @@ mealie:
       configuration_url: "{{ oidc_url | mandatory }}"
       client_id: "{{ client_id | mandatory }}"
       client_secret: "{{ client_secret | mandatory }}"
-      user_group: ""
-      admin_group: ""
+      user_group: "{{ user_group | mandatory }}"
+      admin_group: "{{ admin_group | mandatory }}"
       auto_redirect: true
       provider_name: "SSO"
       remember_me: true
@@ -52,6 +36,9 @@ workload:
                 name: frontend
             - secretRef:
                 name: api
+          env: 
+            ALLOW_PASSWORD_LOGIN: false
+            
 service:
   main:
     ports:
@@ -92,7 +79,7 @@ ingress:
     required: true
     ingressClassName: "nginx"
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-stagging"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
     tls:
       - hosts: 
           - "{{ mealie_hostname | mandatory }}"
