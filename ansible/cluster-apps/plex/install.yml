@@ -37,3 +37,5 @@
         release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
         state: present
         values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
+      tags:
+        - install
