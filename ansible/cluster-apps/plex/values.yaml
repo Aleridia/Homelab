@@ -4,7 +4,7 @@ image:
   registry: index.docker.io
   repository: plexinc/pms-docker
   # -- If unset use "latest"
-  tag: "latest"
+  tag: "1.42.1.10060-4e8b05daf"
   sha: ""
   pullPolicy: IfNotPresent
 
@@ -142,11 +142,11 @@ extraEnv: {}
 
 # -- Optionally specify additional volume mounts for the PMS and init containers.
 extraVolumeMounts:
-  - name: nfs
+  - name: nfs-plex
     mountPath: "/mnt"
 
 # -- Optionally specify additional volumes for the pod.
 extraVolumes:
-  - name: nfs
+  - name: nfs-plex
     persistentVolumeClaim:
-      claimName: nfs
+      claimName: nfs-plex
