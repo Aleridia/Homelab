@@ -1,5 +1,5 @@
 - name: Setup config
-  hosts: nodes
+  hosts: vps,nodes
   become: true
 
   roles:

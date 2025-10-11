@@ -34,3 +34,7 @@ worker_nodes:
       ansible_host: "{{ lookup('env', 'NODE_05') }}"
   vars:
     ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
+vps:
+  hosts:
+    vps_01:
+      ansible_host: "{{ lookup('env', 'VPS_01') }}"
