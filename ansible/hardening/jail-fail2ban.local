@@ -1,0 +1,15 @@
+[DEFAULT]
+banaction = iptables
+banaction_allports = iptables[type=allports]
+#IP 196 is for OVH KVM
+ignoreip = <IP> 127.0.0.1 196.0.0.0/8
+
+[sshd]
+backend = systemd
+port = <PORT>
+logpath = /var/log/auth.log
+bantime = 60h
+findtime = 5m
+maxretry = 3
+mode = aggressive
+enabled = true

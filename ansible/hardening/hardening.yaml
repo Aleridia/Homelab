@@ -1,4 +1,4 @@
-- name: Setup config
+- name: Hardening + auto-updates
   hosts: vps,nodes
   become: true
 
@@ -11,7 +11,6 @@
     sysctl_overwrite:
       # Enable IPv4 traffic forwarding. Used for docker/kube
       net.ipv4.ip_forward: 1
-
   tasks:
     - name: Install auto-update
       become: true
@@ -28,4 +27,60 @@
         group: root
         mode: '0644'
 
+- name: Fail2ban
+  hosts: vps
+  become: true
+  tasks:
+    - name: Change SSH port
+      ansible.builtin.replace:
+        path: /etc/ssh/sshd_config
+        regexp: 'Port 22'
+        replace: "Port {{ lookup('env', 'SSH_PORT') }}"
 
+    - name: Reload service sshd
+      ansible.builtin.systemd_service:
+        name: sshd.service
+        state: reloaded
+
+    - name: Set_fact for ssh port
+      set_fact:
+        ansible_port: "{{ lookup('env', 'SSH_PORT') }}"
+
+    - name: Install Fail2ban
+      ansible.builtin.package:
+        name: fail2ban
+        state: present
+
+    - name: Get all default config filesc
+      find:
+        paths: /etc/fail2ban/jail.d/
+        patterns: "*.conf"
+      register: files_to_delete
+
+    - name: Delete default config files
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      with_items: "{{ files_to_delete.files }}"
+
+    - name: Copy fail2ban config
+      ansible.builtin.copy:
+        src: jail-fail2ban.local
+        dest: /etc/fail2ban/jail.d/jail-fail2ban.local
+
+    - name: Change IP whitelist
+      ansible.builtin.replace:
+        path: /etc/fail2ban/jail.d/jail-fail2ban.local
+        regexp: '<IP>'
+        replace: "Port {{ lookup('env', 'IP') }}"
+
+    - name: Change ssh port in jail config file
+      ansible.builtin.replace:
+        path: /etc/fail2ban/jail.d/jail-fail2ban.local
+        regexp: '<PORT>'
+        replace: "{{ lookup('env', 'SSH_PORT') }}"
+
+    - name: Restart service fail2ban
+      ansible.builtin.systemd_service:
+        name: fail2ban.service
+        state: restarted

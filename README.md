@@ -29,7 +29,7 @@ It's here to help new people and get some review about architecture or software 
 
 ## Ansible
 Before start you need to create an user for ansible in all machines with sudoers rights without password :
-- `sudo useradd -G sudo -m -s /bin/bash ansible`
+- `sudo useradd -G sudo -m -s /bin/bash <USER>`
 
 `sudo visudo` and add this at end of file: 
 ```
@@ -55,7 +55,7 @@ Then run the playbook to harden machines :
 `ansible-playbook -i inventory.yml hardening/hardening.yaml -K`
 Enter the ansible user password for the managed nodes.
 
-After this you need to add the private ssh key to authenticate to the nodes : `eval "$(ssh-agent -s)"` and add the key : `ssh-add <PATH_TO_PRIVATE_KEY>`.
+After this you need to add the private ssh key to authenticate to the nodes :  `eval "$(ssh-agent -s)"` and add the key : `ssh-add <PATH_TO_PRIVATE_KEY>`.
 
 Now install rke2 and Rancher in all the machines
 `ansible-playbook -i inventory.yml rke2/install.yaml`
