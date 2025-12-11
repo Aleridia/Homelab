@@ -1,0 +1,5 @@
+auth:
+  password: {{ redis_password | mandatory }}
+
+replica:
+  replicaCount: 1
