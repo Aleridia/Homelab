@@ -1,0 +1,17 @@
+- name: Install Redis
+  hosts: localhost
+  tasks:
+    - name: Add bitnami repo
+      kubernetes.core.helm_repository:
+        name: bitnami
+        repo_url: "https://charts.bitnami.com/bitnami"
+
+    - name: Apply redis chart
+      vars:
+        redis_password: "{{ lookup('env', 'REDIS_PASSWORD') }}"
+      kubernetes.core.helm:
+        name: "redis-{{ lookup('env', 'NAMESPACE') }}"
+        chart_ref: bitnami/redis
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+        state: present
+        values: "{{ lookup('template', 'values.yaml') | from_yaml }}"

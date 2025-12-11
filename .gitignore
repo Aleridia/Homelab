@@ -3,3 +3,4 @@ kubeconfig.yaml
 config*.yaml
 config*.py
 secret.yaml
+*.ovpn
