@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs-mc
+spec:
+  capacity:
+    storage: 30Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: "manual"
+  nfs:
+    server: $NFS_SERVER_IP
+    path: $NFS_SERVER_PATH_MINECRAFT
+  mountOptions:
+    - nfsvers=4.1
