@@ -16,4 +16,8 @@
 #Remove mariadb
 - name: Uninstall mariadb
   ansible.builtin.import_playbook: ../mariadb/uninstall.yaml
+
+#Remove redis
+- name: Uninstall redis
+  ansible.builtin.import_playbook: ../redis/uninstall.yaml
    

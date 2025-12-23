@@ -23,6 +23,29 @@
 - name: Install mariadb
   ansible.builtin.import_playbook: ../mariadb/install.yaml
 
+- name: Install redis
+  ansible.builtin.import_playbook: ../redis/install.yaml
+
+- name: Save rendered values
+  hosts: localhost
+  tasks:
+  - name: Save
+    vars:
+      seafile_admin_password: "{{ lookup('env', 'SEAFILE_ADMIN_PASSWORD') }}"
+      mysql_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
+      jwt_private_key: "{{ lookup('env', 'JWT_PRIVATE_KEY') }}"
+      mysql_database_password: "{{ lookup('env', 'MARIADB_PASSWORD') }}"
+      redis_password: "{{ lookup('env', 'REDIS_PASSWORD') }}"
+      ingress_url: "seafile.{{ lookup('env', 'DOMAIN_NAME') }}"
+      database_user: "{{ lookup('env', 'MARIADB_USERNAME') }}"
+      seafile_admin_mail: "{{ lookup('env', 'EMAIL') }}"
+      nfs_server_ip: "{{ lookup('env', 'NFS_SERVER_IP') }}"
+      nfs_server_path_seafile: "{{ lookup('env', 'NFS_SERVER_PATH_SEAFILE') }}"
+    ansible.builtin.copy:
+      dest: "/tmp/seafile-values.yaml"
+      content: "{{ lookup('template', 'values.yaml') }}"
+
+
 - name: Install seafile
   hosts: localhost
   tasks:
@@ -32,6 +55,7 @@
         mysql_root_password: "{{ lookup('env', 'MARIADB_ROOT_PASSWORD') }}"
         jwt_private_key: "{{ lookup('env', 'JWT_PRIVATE_KEY') }}"
         mysql_database_password: "{{ lookup('env', 'MARIADB_PASSWORD') }}"
+        redis_password: "{{ lookup('env', 'REDIS_PASSWORD') }}"
         ingress_url: "seafile.{{ lookup('env', 'DOMAIN_NAME') }}"
         database_user: "{{ lookup('env', 'MARIADB_USERNAME') }}"
         seafile_admin_mail: "{{ lookup('env', 'EMAIL') }}"
@@ -39,7 +63,7 @@
         nfs_server_path_seafile: "{{ lookup('env', 'NFS_SERVER_PATH_SEAFILE') }}"
       kubernetes.core.helm:
         name: "seafile"
-        chart_ref: "/tmp/seafile/template/12.0/ce"
+        chart_ref: "/tmp/seafile/template/13.0/ce"
         release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
         state: present
         values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
