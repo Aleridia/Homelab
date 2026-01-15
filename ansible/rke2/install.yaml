@@ -185,6 +185,12 @@
         name: nfs-common
         update_cache: yes
         state: latest
+    - name: Install Libusb in all nodes
+      become: true
+      ansible.builtin.apt:
+        name: libusb-dev
+        update_cache: yes
+        state: latest
 
 - name: Install let's encrypt issuer
   hosts: localhost

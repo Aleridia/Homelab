@@ -1,0 +1,54 @@
+# -- The docker image information for the pms application
+image:
+  # -- The public dockerhub registry
+  registry: index.docker.io
+  repository: plexinc/pms-docker
+  # -- If unset use "latest"
+  sha: ""
+  pullPolicy: IfNotPresent
+
+global:
+  # -- Allow parent charts to override registry hostname
+  imageRegistry: ""
+
+ingress:
+  # -- Specify if an ingress resource for the pms server should be created or not
+  enabled: true
+
+  # -- The ingress class that should be used
+  ingressClassName: "nginx"
+
+  # -- The url to use for the ingress reverse proxy to point at this pms instance
+  url: "{{ plex_full_hostname | mandatory }}"
+
+  # -- Custom annotations to put on the ingress resource
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    - hosts:
+        - "{{ plex_hostname | mandatory }}"
+      secretName: plex-tls
+
+pms:
+  # -- The storage class to use when provisioning the pms config volume
+  # this needs to be created manually, null will use the default
+  storageClassName: null
+
+  # -- The volume size to provision for the PMS database
+  configStorage: 30Gi
+
+service:
+  type: ClusterIP
+  port: 32400
+
+
+# -- Optionally specify additional volume mounts for the PMS and init containers.
+extraVolumeMounts:
+  - name: nfs-plex
+    mountPath: "/mnt"
+
+# -- Optionally specify additional volumes for the pod.
+extraVolumes:
+  - name: nfs-plex
+    persistentVolumeClaim:
+      claimName: nfs-plex
