@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: nfs
+spec:
+  capacity:
+    storage: 3.5Ti
+  accessModes:
+    - ReadWriteMany
+  storageClassName: "manual"
+  nfs:
+    server: {{ nfs_server_ip | mandatory }}
+    path: {{ nfs_server_path_plex | mandatory }}
+  mountOptions:
+    - nfsvers=4.1
