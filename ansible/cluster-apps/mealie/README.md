@@ -16,6 +16,7 @@ Do not forget to create the client in the SSO with the following fields:
 - Valid redirect URIs : https://mealie.<DOMAIN_NAME>/*
 - Web origins : https://mealie.<DOMAIN_NAME>
 - Client authentication : On
+- Authentication flow : Standard flow + Direct access grants
 
 Then you need to make some ClientScope. Refer to the [Github discussion](https://github.com/mealie-recipes/mealie/discussions/3428).
 

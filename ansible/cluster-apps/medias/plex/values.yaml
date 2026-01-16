@@ -37,6 +37,12 @@ pms:
   # -- The volume size to provision for the PMS database
   configStorage: 30Gi
 
+
+  resources:
+    limits:
+      cpu: 4000m
+      memory: 8192Mi
+
 service:
   type: ClusterIP
   port: 32400
