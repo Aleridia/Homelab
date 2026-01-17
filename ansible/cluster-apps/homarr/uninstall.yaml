@@ -1,0 +1,25 @@
+- name: Uninstall Homarr
+  hosts: localhost
+  tasks:
+    - name: Remove homarr chart
+      kubernetes.core.helm:
+        name: "homarr"
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+        state: absent
+        wait: true
+
+    - name: Remove secret db
+      kubernetes.core.k8s:
+        state: absent
+        name: "db-encryption"
+        api_version: v1
+        kind: Secret
+        namespace: "{{ lookup('env', 'NAMESPACE') }}"        
+
+    - name: Remove secret oidc
+      kubernetes.core.k8s:
+        state: absent
+        name: "auth-oidc-secret"
+        api_version: v1
+        kind: Secret
+        namespace: "{{ lookup('env', 'NAMESPACE') }}"     

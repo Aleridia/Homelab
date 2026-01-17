@@ -1,0 +1,38 @@
+persistence:
+  homarrDatabase:
+    enabled: true
+    storageClassName: "longhorn"
+    size: "15Gi"
+
+service:
+  enabled: true
+ingress:
+  enabled: true
+  ingressClassName: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: "{{ homarr_hostname | mandatory }}"
+      paths:
+        - path: /
+  tls:
+    - hosts:
+        - "{{ homarr_hostname | mandatory }}"
+      secretName: homarr-tls
+
+env:
+  # Enable OIDC only (recommended)
+  AUTH_PROVIDERS: "oidc"
+
+  # Keycloak issuer (NO trailing slash)
+  AUTH_OIDC_ISSUER: "{{ oidc_url | mandatory }}"
+
+  # Login button label
+  AUTH_OIDC_CLIENT_NAME: "Keycloak"
+
+envSecrets:
+  authOidcCredentials:
+    # Defaults are already these, but keep here for clarity
+    existingSecret: "auth-oidc-secret"
+    oidcClientId: "oidc-client-id"
+    oidcClientSecret: "oidc-client-secret"
