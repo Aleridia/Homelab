@@ -9,4 +9,4 @@ spec:
   resources:
     requests:
       storage: 3.5Ti
-  volumeName: nfs
+  volumeName: nfs-plex

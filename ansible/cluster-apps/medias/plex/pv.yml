@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: nfs
+  name: nfs-plex
 spec:
   capacity:
     storage: 3.5Ti
@@ -13,3 +13,11 @@ spec:
     path: {{ nfs_server_path_plex | mandatory }}
   mountOptions:
     - nfsvers=4.1
+    - rw
+    - rsize=131072
+    - wsize=131072
+    - noatime
+    - hard
+    - timeo=600
+    - retrans=5
+    - actimeo=1
