@@ -32,6 +32,11 @@ If the pvc don't want to be delete, patch it : `kubectl patch pvc nfs -p '{"meta
 3. Create the pvc `k apply -f pvc.yml`
 
 ## Configuration
+### Network
 - Do not forget to use the let's encrypt prod, else plex app wont work
 - In the "Network" settings, add IP without auth like this : `192.168.X.1/255.255.255.0`
 - Follow the [suggested plex configuration](https://trash-guides.info/Plex/Tips/Plex-media-server/)
+
+### NFS
+If you have some trouble when watching movies (freeze and then plex cannot acces to the mount path nfs) then you will need to configure the NFS server.\
+More information [here](https://forums.plex.tv/t/plex-1-43-0-10389-crashes/935115/12)

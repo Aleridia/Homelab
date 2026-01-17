@@ -1,0 +1,35 @@
+- name: Setup installation
+  hosts: localhost
+  tasks:
+    - name: Create db secret
+      vars:
+          db_encryption_key: "{{ lookup('env', 'HOMARR_DB_ENCRYPTION_KEY') }}"
+      kubernetes.core.k8s:
+        state: present
+        template: 'db-secret.j2.yaml'
+        namespace: "{{ lookup('env', 'NAMESPACE') }}"  
+
+    - name: Create oidc secret
+      vars:
+          oidc_client_id: "{{ lookup('env', 'HOMARR_OIDC_CLIENT_ID') }}"
+          oidc_client_secret: "{{ lookup('env', 'HOMARR_OIDC_CLIENT_SECRET') }}"
+      kubernetes.core.k8s:
+        state: present
+        template: 'oidc-secret.j2.yaml'
+        namespace: "{{ lookup('env', 'NAMESPACE') }}"  
+
+    # Need to pull it because of OCI address
+    - name: Pull Homarr chart from OCI
+      ansible.builtin.shell: "helm pull oci://ghcr.io/homarr-labs/charts/homarr --untar --untardir /tmp/"
+    
+    - name: Install Homarr from pulled chart
+      vars:
+        homarr_hostname: "homarr.{{ lookup('env', 'DOMAIN_NAME') }}"
+        oidc_url: "https://keycloak.{{ lookup('env', 'DOMAIN_NAME') }}/realms/{{ lookup('env', 'REALM_NAME') }}"
+      kubernetes.core.helm:
+        name: "{{ lookup('env', 'NAMESPACE') }}"
+        chart_ref: /tmp/homarr/
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+        state: present
+        create_namespace: true
+        values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
