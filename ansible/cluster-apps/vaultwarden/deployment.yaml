@@ -43,3 +43,5 @@ spec:
               value: "{{ smtp_username | mandatory }}"
             - name: SMTP_PASSWORD
               value: "{{ smtp_password | mandatory }}"
+            - name: DATABASE_URL
+              value: "{{ database_url | mandatory }}"

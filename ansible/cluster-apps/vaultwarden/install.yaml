@@ -1,6 +1,10 @@
+- name: Install mariadb
+  ansible.builtin.import_playbook: ../mariadb/install.yaml
+
 - name: Installing Vaultwarden
   hosts: localhost
   tasks:
+
     - name : Install the deployment
       vars:
         vaultwarden_namespace : "{{ lookup('env', 'NAMESPACE') }}"
@@ -11,6 +15,7 @@
         smtp_port : "{{ lookup('env', 'SMTP_PORT') }}"
         smtp_username : "{{ lookup('env', 'SMTP_USERNAME') }}"
         smtp_password : "{{ lookup('env', 'SMTP_PASSWORD') }}"
+        database_url: "mysql://{{ lookup('env', 'MARIADB_USERNAME') }}:{{ lookup('env', 'MARIADB_PASSWORD') }}@mariadb-vaultwarden/{{ lookup('env', 'MARIADB_DATABASE') }}"
       kubernetes.core.k8s:
         state: present
         definition: "{{ lookup('template', 'deployment.yaml') | from_yaml }}"
