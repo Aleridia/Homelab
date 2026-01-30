@@ -36,13 +36,6 @@ pms:
 
   # -- The volume size to provision for the PMS database
   configStorage: 30Gi
-
-
-  resources:
-    limits:
-      cpu: 4000m
-      memory: 8192Mi
-
 service:
   type: ClusterIP
   port: 32400
@@ -50,11 +43,11 @@ service:
 
 # -- Optionally specify additional volume mounts for the PMS and init containers.
 extraVolumeMounts:
-  - name: nfs-plex
+  - name: smb-media-pvc
     mountPath: "/mnt"
 
 # -- Optionally specify additional volumes for the pod.
 extraVolumes:
-  - name: nfs-plex
+  - name: smb-media-pvc
     persistentVolumeClaim:
-      claimName: nfs-plex
+      claimName: smb-media-pvc

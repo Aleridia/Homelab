@@ -9,7 +9,7 @@ spec:
     - ReadWriteMany
   storageClassName: "manual"
   nfs:
-    server: $NFS_SERVER_IP
+    server: $STORAGE_SERVER_IP
     path: $NFS_SERVER_PATH_MINECRAFT
   mountOptions:
     - nfsvers=4.1
