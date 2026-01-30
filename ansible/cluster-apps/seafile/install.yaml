@@ -39,7 +39,7 @@
       ingress_url: "seafile.{{ lookup('env', 'DOMAIN_NAME') }}"
       database_user: "{{ lookup('env', 'MARIADB_USERNAME') }}"
       seafile_admin_mail: "{{ lookup('env', 'EMAIL') }}"
-      nfs_server_ip: "{{ lookup('env', 'NFS_SERVER_IP') }}"
+      nfs_server_ip: "{{ lookup('env', 'STORAGE_SERVER_IP') }}"
       nfs_server_path_seafile: "{{ lookup('env', 'NFS_SERVER_PATH_SEAFILE') }}"
     ansible.builtin.copy:
       dest: "/tmp/seafile-values.yaml"
@@ -59,7 +59,7 @@
         ingress_url: "seafile.{{ lookup('env', 'DOMAIN_NAME') }}"
         database_user: "{{ lookup('env', 'MARIADB_USERNAME') }}"
         seafile_admin_mail: "{{ lookup('env', 'EMAIL') }}"
-        nfs_server_ip: "{{ lookup('env', 'NFS_SERVER_IP') }}"
+        nfs_server_ip: "{{ lookup('env', 'STORAGE_SERVER_IP') }}"
         nfs_server_path_seafile: "{{ lookup('env', 'NFS_SERVER_PATH_SEAFILE') }}"
       kubernetes.core.helm:
         name: "seafile"

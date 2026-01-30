@@ -9,7 +9,7 @@
 
     - name: Remove plex chart
       kubernetes.core.helm:
-        name: "{{ lookup('env', 'NAMESPACE') }}"
+        name: "plex"
         release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
         state: absent
         wait: true
@@ -19,7 +19,15 @@
     - name: Remove pvc
       kubernetes.core.k8s:
         state: absent
-        template: 'pvc.yml'
+        template: 'pvc.yaml'
+        namespace: "{{ lookup('env', 'NAMESPACE') }}"  
+
+    - name: Remove pv
+      vars:
+        smb_source: "//{{ lookup('env', 'STORAGE_SERVER_IP') }}/{{ lookup('env', 'SMB_PATH_MEDIA') }}"
+      kubernetes.core.k8s:
+        state: absent
+        template: 'pv.yaml'
         namespace: "{{ lookup('env', 'NAMESPACE') }}"  
 
     - name: Remove namespace

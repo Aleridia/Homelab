@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: smb-media
+spec:
+  capacity:
+    storage: 3.5Ti
+  accessModes:
+    - ReadOnlyMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: manual
+  csi:
+    driver: smb.csi.k8s.io
+    volumeHandle: smb-media
+    volumeAttributes:
+      source: {{ smb_source | mandatory }}
+    nodeStageSecretRef:
+      name: smb-credentials
+      namespace: plex
+  mountOptions:
+  - vers=3.0
+  - sec=ntlmssp
+  - nounix
+  - noperm
+  - ro
+  - dir_mode=0555
+  - file_mode=0444
+  - cache=loose
+  - actimeo=30
+  - noserverino
+  - nolease
+  - noposix
+  - nosharesock

@@ -1,12 +1,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: nfs-plex
+  name: smb-media-pvc
 spec:
   accessModes:
-    - ReadWriteMany
-  storageClassName: "manual"
+    - ReadOnlyMany
+  storageClassName: manual
   resources:
     requests:
       storage: 3.5Ti
-  volumeName: nfs-plex
+  volumeName: smb-media

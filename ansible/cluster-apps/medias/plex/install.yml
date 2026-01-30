@@ -11,18 +11,28 @@
         api_version: v1
         kind: Namespace
         state: present
-    - name: Install pv
+
+    - name: Create secret to apply credentials
       vars:
-        nfs_server_ip: "{{ lookup('env', 'NFS_SERVER_IP') }}"
-        nfs_server_path_plex: "{{ lookup('env', 'NFS_SERVER_PATH_PLEX') }}"
+          smb_username: "{{ lookup('env', 'SMB_USERNAME') }}"
+          smb_password: "{{ lookup('env', 'SMB_PASSWORD') }}"
       kubernetes.core.k8s:
         state: present
-        template: 'pv.yml'
+        template: 'templates/secret.j2.yaml'
+        namespace: "{{ lookup('env', 'NAMESPACE') }}" 
+
+    - name: Install pv
+      vars:
+        smb_source: "//{{ lookup('env', 'STORAGE_SERVER_IP') }}/{{ lookup('env', 'SMB_PATH_MEDIA') }}"
+      kubernetes.core.k8s:
+        state: present
+        template: 'pv.yaml'
         namespace: "{{ lookup('env', 'NAMESPACE') }}"  
+
     - name: Install pvc
       kubernetes.core.k8s:
         state: present
-        template: 'pvc.yml'
+        template: 'pvc.yaml'
         namespace: "{{ lookup('env', 'NAMESPACE') }}"  
 
 - name: Install plex
