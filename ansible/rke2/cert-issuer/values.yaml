@@ -1,0 +1,104 @@
+# vim: set ft=yaml
+# yaml-language-server: $schema=values.schema.json
+
+# @schema
+# required: true
+# type: string
+# @schema
+# -- The `groupName` here is used to identify your company or business unit that
+# created this webhook.
+# For example, this may be `acme.mycompany.example`.
+# This name will need to be referenced in each Issuer's `webhook` stanza to
+# inform cert-manager of where to send ChallengePayload resources in order to
+# solve the DNS01 challenge.
+# This group name should be **unique**, hence using your own company's domain
+# here is recommended.
+configVersion: 0.0.2
+groupName: {{ domain_name | mandatory }}
+
+issuers:
+  - name: letsencrypt-staging
+
+    acmeServerUrl: https://acme-staging-v02.api.letsencrypt.org/directory
+
+    create: true
+    kind: ClusterIssuer
+    email: {{ email | mandatory }}
+
+    ovhEndpointName: ovh-eu
+
+    # @schema
+    # required: true
+    # enum: [application, oauth2]
+    # @schema
+    # -- Define how the webhook should authenticate with the OVH API. It can be either `application` or `oauth2`.
+    # When `ovhAuthenticationMethod` is `application`, then use:
+    #   - `ovhAuthentication.applicationKey`, `ovhAuthentication.applicationSecret`, and `ovhAuthentication.applicationConsumerKey`
+    #   or
+    #   - `ovhAuthenticationRef.applicationKeyRef`, `ovhAuthenticationRef.applicationSecretRef` and `ovhAuthenticationRef.applicationConsumerKeyRef`.
+    #
+    # When `ovhAuthenticationMethod` is `oauth2`, then use:
+    #   - `ovhAuthentication.oauth2ClientID` and `ovhAuthentication.oauth2ClientSecret`
+    #   or
+    #   - `ovhAuthenticationRef.oauth2ClientIDRef` and `ovhAuthenticationRef.oauth2ClientSecretRef`.
+    ovhAuthenticationMethod: oauth2
+
+    # @schema
+    # required: false
+    # type: object
+    # @schema
+    # -- Define your credentials below and the chart will create the necessary secret for you.
+    # If `ovhAuthenticationMethod` is `application`, then provide:
+    #   - `applicationKey`, `applicationSecret`, and `applicationConsumerKey`
+    # If `ovhAuthenticationMethod` is `oauth2`, then provide:
+    #   - `oauth2ClientID` and `oauth2ClientSecret`
+    ovhAuthentication:
+      oauth2ClientID: {{ ovh_oauth_id | mandatory }}
+      oauth2ClientSecret: {{ ovh_oauth_secret | mandatory }}
+
+      applicationKey: {{ ovh_application_key | mandatory }}
+      applicationSecret: {{ ovh_application_secret | mandatory }}
+      applicationConsumerKey: {{ ovh_consumer_key | mandatory }}
+
+  - name: letsencrypt-prod
+
+    acmeServerUrl: https://acme-v02.api.letsencrypt.org/directory
+
+    create: true
+    kind: ClusterIssuer
+    email: {{ email | mandatory }}
+
+    ovhEndpointName: ovh-eu
+
+    # @schema
+    # required: true
+    # enum: [application, oauth2]
+    # @schema
+    # -- Define how the webhook should authenticate with the OVH API. It can be either `application` or `oauth2`.
+    # When `ovhAuthenticationMethod` is `application`, then use:
+    #   - `ovhAuthentication.applicationKey`, `ovhAuthentication.applicationSecret`, and `ovhAuthentication.applicationConsumerKey`
+    #   or
+    #   - `ovhAuthenticationRef.applicationKeyRef`, `ovhAuthenticationRef.applicationSecretRef` and `ovhAuthenticationRef.applicationConsumerKeyRef`.
+    #
+    # When `ovhAuthenticationMethod` is `oauth2`, then use:
+    #   - `ovhAuthentication.oauth2ClientID` and `ovhAuthentication.oauth2ClientSecret`
+    #   or
+    #   - `ovhAuthenticationRef.oauth2ClientIDRef` and `ovhAuthenticationRef.oauth2ClientSecretRef`.
+    ovhAuthenticationMethod: oauth2
+
+    # @schema
+    # required: false
+    # type: object
+    # @schema
+    # -- Define your credentials below and the chart will create the necessary secret for you.
+    # If `ovhAuthenticationMethod` is `application`, then provide:
+    #   - `applicationKey`, `applicationSecret`, and `applicationConsumerKey`
+    # If `ovhAuthenticationMethod` is `oauth2`, then provide:
+    #   - `oauth2ClientID` and `oauth2ClientSecret`
+    ovhAuthentication:
+      oauth2ClientID: {{ ovh_oauth_id | mandatory }}
+      oauth2ClientSecret: {{ ovh_oauth_secret | mandatory }}
+
+      applicationKey: {{ ovh_application_key | mandatory }}
+      applicationSecret: {{ ovh_application_secret | mandatory }}
+      applicationConsumerKey: {{ ovh_consumer_key | mandatory }}

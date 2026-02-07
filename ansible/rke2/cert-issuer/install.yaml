@@ -1,0 +1,24 @@
+- name: Install cert-manager OVH webhook
+  hosts: localhost
+  tasks:
+    - name: Add Webhook repo
+      ansible.builtin.shell: helm repo add cert-manager-webhook-ovh-charts https://aureq.github.io/cert-manager-webhook-ovh/
+
+    - name: Update helm repos
+      ansible.builtin.shell: helm repo update
+
+    - name: Apply webhook chart
+      vars:
+        domain_name: "{{ lookup('env', 'DOMAIN_NAME') }}"
+        email: "{{ lookup('env', 'EMAIL') }}"
+        ovh_application_key: "{{ lookup('env', 'OVH_APPLICATION_KEY') }}"
+        ovh_application_secret: "{{ lookup('env', 'OVH_APPLICATION_SECRET') }}"
+        ovh_consumer_key: "{{ lookup('env', 'OVH_CONSUMER_KEY') }}"
+        ovh_oauth_id: "{{ lookup('env', 'OVH_OAUTH_ID') }}"
+        ovh_oauth_secret: "{{ lookup('env', 'OVH_OAUTH_SECRET') }}"
+      kubernetes.core.helm:
+        name: "cert-manager-ovh-webhook"
+        chart_ref: cert-manager-webhook-ovh-charts/cert-manager-webhook-ovh
+        release_namespace: "cert-manager"
+        state: present
+        values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
