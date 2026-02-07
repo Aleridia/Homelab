@@ -79,7 +79,7 @@ ingress:
     required: true
     ingressClassName: "nginx"
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-staging"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
     tls:
       - hosts: 
           - "{{ mealie_hostname | mandatory }}"
@@ -99,7 +99,7 @@ ingress:
     required: true
     ingressClassName: "nginx"
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-staging"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
     tls:
       - hosts: 
           - "{{ mealie_hostname | mandatory }}"
@@ -121,7 +121,7 @@ ingress:
     enabled: true
     ingressClassName: nginx
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-staging"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
     tls:
       - hosts: 
           - "{{ mealie_api_hostname | mandatory }}"
