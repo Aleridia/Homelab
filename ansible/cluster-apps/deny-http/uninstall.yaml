@@ -1,0 +1,10 @@
+- name: Setup installation
+  hosts: localhost
+  tasks:
+    - name: Apply deployment and service
+      vars:
+          deny_http_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+      kubernetes.core.k8s:
+        state: absent
+        template: 'templates/deny-http.j2.yaml'
+        namespace: "{{ lookup('env', 'NAMESPACE') }}" 

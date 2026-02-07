@@ -14,6 +14,7 @@ Do not forget to create the client in the SSO with the following fields:
 - Root url : https://mealie.<DOMAIN_NAME>
 - Home url : /login*
 - Valid redirect URIs : https://mealie.<DOMAIN_NAME>/*
+- Valid recirect URIs : https://mealie-api<DOMAIN_NAME>/*
 - Web origins : https://mealie.<DOMAIN_NAME>
 - Client authentication : On
 - Authentication flow : Standard flow + Direct access grants
@@ -24,3 +25,9 @@ Then you need to make some ClientScope. Refer to the [Github discussion](https:/
 To use Bring without internet input, I use [this project](https://github.com/felixschndr/mealie-bring-api).
 
 Do not forget to follow instruction in the project's README to configure Mealie, with this address `http://mealie-bring-api/`.
+
+## API
+Due to exposition and [security issues](https://docs.mealie.io/documentation/getting-started/installation/security/), the mealie api is not exposed.\
+To do so, the ingress redirects the dangerous paths in `/api` in the [deny-http](../deny-http/README.md).\
+
+The API can be accessed from internal network with the address `https://mealie-api.<DOMAIN>`.
