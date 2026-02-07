@@ -79,7 +79,7 @@ ingress:
     required: true
     ingressClassName: "nginx"
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      cert-manager.io/cluster-issuer: "letsencrypt-staging"
     tls:
       - hosts: 
           - "{{ mealie_hostname | mandatory }}"
@@ -93,3 +93,41 @@ ingress:
               expandObjectName: false
               name: mealie
               port: 10018
+  block-api:
+    namespace: "{{ mealie_namespace | mandatory }}"
+    enabled: true
+    required: true
+    ingressClassName: "nginx"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    tls:
+      - hosts: 
+          - "{{ mealie_hostname | mandatory }}"
+        secretName: "{{ mealie_hostname_secret | mandatory }}"
+    hosts:
+      - host: "{{ mealie_hostname | mandatory }}"
+        paths:
+          - &deny_backend
+            path: /api/recipes
+            pathType: Prefix
+            overrideService:
+              expandObjectName: false
+              name: deny-http
+              port: 80
+          - <<: *deny_backend
+            path: /api/admin
+
+  api:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    tls:
+      - hosts: 
+          - "{{ mealie_api_hostname | mandatory }}"
+        secretName: "{{ mealie_api_hostname_secret | mandatory }}"
+    hosts:
+      - host: "{{ mealie_api_hostname | mandatory }}"
+        paths:
+          - path: /
+            pathType: Prefix

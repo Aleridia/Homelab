@@ -1,10 +1,13 @@
+- name: Install deny-http
+  ansible.builtin.import_playbook: ../deny-http/install.yaml
+
 - name: Setup installation
   hosts: localhost
   tasks:
 
   # Need to pull it because of OCI address
   - name: Pull Mealie chart from OCI
-    ansible.builtin.shell: "helm pull oci://tccr.io/truecharts/mealie --untar --untardir /tmp/"
+    ansible.builtin.shell: "helm pull oci://oci.trueforge.org/truecharts/mealie --untar --untardir /tmp/"
 
   - name: Create the namespace
     kubernetes.core.k8s:
@@ -21,7 +24,9 @@
       cnpg_user: "{{ lookup('env', 'MEALIE_CNPG_USER') }}"
       cnpg_database: "{{ lookup('env', 'MEALIE_CNPG_DATABASE') }}"
       mealie_hostname: "mealie.{{ lookup('env', 'DOMAIN_NAME') }}"
+      mealie_api_hostname: "mealie-api.{{ lookup('env', 'DOMAIN_NAME') }}"
       mealie_hostname_secret: "{{ lookup('env', 'MEALIE_TLS_SECRET') }}"
+      mealie_api_hostname_secret: "{{ lookup('env', 'MEALIE_API_TLS_SECRET') }}"
       mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
       user_group : "/{{ lookup('env', 'KEYCLOAK_NOT_HOME_GROUP') }}"
       admin_group : "/{{ lookup('env', 'KEYCLOAK_HOME_GROUP') }}"

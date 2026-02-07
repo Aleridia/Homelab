@@ -126,7 +126,6 @@ For multiple tools I need mariadb instance.
 
 
 ## TODO
-- [ ] Check if Cilium if worth it to add
 - [ ] Add HAproxy
 - [ ] Add webserver to host blog & auto deploy in medium + stackpills
 - [ ] Adress to accept for the ACME challenge : https://<DNS-NAME>/.well-known/acme-challenge/<43-Characters>
