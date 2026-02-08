@@ -93,13 +93,15 @@ ingress:
               expandObjectName: false
               name: mealie
               port: 10018
-  block-api:
+  restrict-api:
     namespace: "{{ mealie_namespace | mandatory }}"
     enabled: true
     required: true
     ingressClassName: "nginx"
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/limit-rps: "5"
+      nginx.ingress.kubernetes.io/limit-burst-multiplier: "3"
+      nginx.ingress.kubernetes.io/limit-connections: "10"
     tls:
       - hosts: 
           - "{{ mealie_hostname | mandatory }}"
@@ -107,27 +109,42 @@ ingress:
     hosts:
       - host: "{{ mealie_hostname | mandatory }}"
         paths:
-          - &deny_backend
-            path: /api/recipes
+          - path: /api
             pathType: Prefix
             overrideService:
               expandObjectName: false
-              name: deny-http
-              port: 80
-          - <<: *deny_backend
-            path: /api/admin
-
-  api:
+              name: mealie
+              port: 10018
+  restrict-api-create:
+    namespace: "{{ mealie_namespace | mandatory }}"
     enabled: true
-    ingressClassName: nginx
+    required: true
+    ingressClassName: "nginx"
     annotations:
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      nginx.ingress.kubernetes.io/limit-rps: "1"
+      nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
+      nginx.ingress.kubernetes.io/limit-connections: "3"
     tls:
       - hosts: 
-          - "{{ mealie_api_hostname | mandatory }}"
-        secretName: "{{ mealie_api_hostname_secret | mandatory }}"
+          - "{{ mealie_hostname | mandatory }}"
+        secretName: "{{ mealie_hostname_secret | mandatory }}"
     hosts:
-      - host: "{{ mealie_api_hostname | mandatory }}"
+      - host: "{{ mealie_hostname | mandatory }}"
         paths:
-          - path: /
+          - &restrict_egress
+            path: /api/recipes/create/url
             pathType: Prefix
+            overrideService:
+              expandObjectName: false
+              name: mealie
+              port: 10018            
+          - <<: *restrict_egress
+            path: /api/recipes/create/url/bulk
+          - <<: *restrict_egress
+            path: /api/recipes/test-scrape-url
+          - <<: *restrict_egress
+            path: /api/recipes/create/test-scrape-url
+          - <<: *restrict_egress
+            path: /api/admin/
+          - <<: *restrict_egress
+            path: /api/households/recipe-actions/
