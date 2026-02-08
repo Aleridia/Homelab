@@ -1,6 +1,3 @@
-- name: Install deny-http
-  ansible.builtin.import_playbook: ../deny-http/install.yaml
-
 - name: Setup installation
   hosts: localhost
   tasks:
@@ -23,10 +20,8 @@
       client_secret: "{{ lookup('env', 'MEALIE_CLIENT_SECRET') }}"
       cnpg_user: "{{ lookup('env', 'MEALIE_CNPG_USER') }}"
       cnpg_database: "{{ lookup('env', 'MEALIE_CNPG_DATABASE') }}"
-      mealie_hostname: "mealie.{{ lookup('env', 'DOMAIN_NAME') }}"
-      mealie_api_hostname: "mealie-api.{{ lookup('env', 'DOMAIN_NAME') }}"
+      mealie_hostname: "cuisine.{{ lookup('env', 'DOMAIN_NAME') }}"
       mealie_hostname_secret: "{{ lookup('env', 'MEALIE_TLS_SECRET') }}"
-      mealie_api_hostname_secret: "{{ lookup('env', 'MEALIE_API_TLS_SECRET') }}"
       mealie_namespace : "{{ lookup('env', 'NAMESPACE') }}"
       user_group : "/{{ lookup('env', 'KEYCLOAK_NOT_HOME_GROUP') }}"
       admin_group : "/{{ lookup('env', 'KEYCLOAK_HOME_GROUP') }}"
