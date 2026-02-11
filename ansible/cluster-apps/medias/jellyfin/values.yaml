@@ -1,0 +1,39 @@
+# -- Ingress configuration. See: https://kubernetes.io/docs/concepts/services-networking/ingress/
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: {{ jellyfin_hostname | mandatory }}
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls:
+   - secretName: jellyfin-tls
+     hosts:
+       - {{ jellyfin_hostname | mandatory }}
+
+volumes:
+  - name: secret-tls
+    secret:
+      secretName: jellyfin-tls
+      optional: false
+volumeMounts:
+  - name: secret-tls
+    mountPath: "/mnt"
+    readOnly: true
+
+persistence:
+  config:
+    storageClass: 'longhorn'
+  media:
+    storageClass: 'manual'
+        # -- set to false to use emptyDir
+    enabled: true
+    # -- Type of volume for media storage (pvc, hostPath, emptyDir). If 'enabled' is false, 'emptyDir' is used regardless of this setting.
+    type: pvc
+    ## -- Use an existing PVC for this mount
+    existingClaim: 'smb-media-jellyfin-pvc'
+  cache:
+    storageClass: 'longhorn'

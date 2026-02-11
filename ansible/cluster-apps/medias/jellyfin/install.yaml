@@ -1,0 +1,53 @@
+- name: Setup installation
+  hosts: localhost
+  tasks:
+    - name: Add jellyfin repo
+      kubernetes.core.helm_repository:
+        name: jellyfin
+        repo_url: "https://jellyfin.github.io/jellyfin-helm"
+
+    - name: Create the namespace
+      kubernetes.core.k8s:
+        name: "{{ lookup('env', 'NAMESPACE') }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Create secret to apply credentials
+      vars:
+        smb_username: "{{ lookup('env', 'SMB_USERNAME') }}"
+        smb_password: "{{ lookup('env', 'SMB_PASSWORD') }}"
+      kubernetes.core.k8s:
+        state: present
+        template: 'templates/secret.j2.yaml'
+        namespace: "{{ lookup('env', 'NAMESPACE') }}" 
+
+    - name: Install pv
+      vars:
+        smb_source: "//{{ lookup('env', 'STORAGE_SERVER_IP') }}/{{ lookup('env', 'SMB_PATH_MEDIA') }}"
+      kubernetes.core.k8s:
+        state: present
+        template: 'pv.yaml'
+        namespace: "{{ lookup('env', 'NAMESPACE') }}"  
+
+    - name: Install pvc
+      kubernetes.core.k8s:
+        state: present
+        template: 'pvc.yaml'
+        namespace: "{{ lookup('env', 'NAMESPACE') }}"  
+
+- name: Install jellyfin
+  hosts: localhost
+  tasks:
+    - name: Apply jellyfin chart
+      vars:
+        jellyfin_full_hostname: "https://jellyfin.{{ lookup('env', 'DOMAIN_NAME') }}"
+        jellyfin_hostname: "jellyfin.{{ lookup('env', 'DOMAIN_NAME') }}"
+      kubernetes.core.helm:
+        name: "jellyfin"
+        chart_ref: jellyfin/jellyfin
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+        state: present
+        values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
+      tags:
+        - install
