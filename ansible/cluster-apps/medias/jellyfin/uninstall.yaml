@@ -1,15 +1,15 @@
-- name: Uninstall Plex
+- name: Uninstall jellyfin
   hosts: localhost
   tasks:
-    - name: Remove plex repo
+    - name: Remove jellyfin repo
       kubernetes.core.helm_repository:
-        name: plex
-        repo_url: "https://raw.githubusercontent.com/plexinc/pms-docker/gh-pages"
+        name: jellyfin
+        repo_url: "https://jellyfin.github.io/jellyfin-helm"
         state: absent
 
-    - name: Remove plex chart
+    - name: Remove jellyfin chart
       kubernetes.core.helm:
-        name: "plex"
+        name: "jellyfin"
         release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
         state: absent
         wait: true
