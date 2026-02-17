@@ -1,0 +1,125 @@
+- name: Setup installation
+  hosts: vps
+  become: true
+  tasks:
+    - name: Install packages
+      ansible.builtin.package:
+        name: 
+          - nginx-full
+          - network-manager-openvpn
+          - network-manager-openvpn-gnome
+        state: present
+
+    - name: Copy VPN config
+      ansible.builtin.copy:
+        src: vpn.ovpn
+        dest: /etc/openvpn/client.conf
+        owner: root
+        group: root
+
+    - name: Create credentials file
+      ansible.builtin.file:
+        path: /etc/openvpn/pass
+        state: touch
+        mode: 0400
+
+    - name: Add login
+      ansible.builtin.lineinfile:
+        path: /etc/openvpn/pass
+        line: "{{ lookup('ansible.builtin.env', 'VPS_VPN_USERNAME') }}"
+
+    - name: Add password
+      ansible.builtin.lineinfile:
+        path: /etc/openvpn/pass
+        line: "{{ lookup('ansible.builtin.env', 'VPS_VPN_PASSWORD') }}"
+
+    - name: Auto start vpn
+      ansible.builtin.replace:
+        path: /etc/default/openvpn
+        regexp: '#AUTOSTART="all"'
+        replace: 'AUTOSTART="client"'
+        
+    - name: Enable and start openvpn
+      ansible.builtin.systemd_service:
+        name: openvpn@client.service
+        state: started
+        enabled: true
+    
+    - name: Enable and start nginx
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: started
+        enabled: true
+
+    - name: Remove server_tokens build setting
+      ansible.builtin.lineinfile:
+        path: /etc/nginx/nginx.conf
+        regexp: '^\s*server_tokens\s+build;'
+        state: absent
+
+    - name: Delete default website
+      ansible.builtin.file:
+        path: /etc/nginx/sites-available/default
+        state: absent
+
+    - name: Create nginx stream.d folder
+      ansible.builtin.file:
+        path: /etc/nginx/stream.d
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Copy k8s SNI stream config
+      ansible.builtin.copy:
+        src: stream.d/k8s-sni.conf
+        dest: /etc/nginx/stream.d/k8s-sni.conf
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Ensure stream include block exists in nginx.conf
+      ansible.builtin.blockinfile:
+        path: /etc/nginx/nginx.conf
+        marker: "# {mark} ANSIBLE MANAGED STREAM BLOCK"
+        insertbefore: EOF
+        block: |
+          stream {
+              include /etc/nginx/stream.d/*.conf;
+          }
+
+    - name: Copy HTTP redirect config
+      ansible.builtin.copy:
+        src: conf.d/redirect-80.conf
+        dest: /etc/nginx/conf.d/redirect-80.conf
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Copy HTTP security config
+      ansible.builtin.copy:
+        src: conf.d/security-http.conf
+        dest: /etc/nginx/conf.d/security-http.conf
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Replace DOMAIN_NAME placeholder in nginx configs
+      ansible.builtin.replace:
+        path: "{{ item }}"
+        regexp: "<DOMAIN_NAME>"
+        replace: "{{ lookup('ansible.builtin.env', 'DOMAIN_NAME') }}"
+      loop:
+        - /etc/nginx/stream.d/k8s-sni.conf
+        - /etc/nginx/conf.d/redirect-80.conf
+
+    - name: Replace NODE_05 placeholder in stream config
+      ansible.builtin.replace:
+        path: /etc/nginx/stream.d/k8s-sni.conf
+        regexp: "<NODE_05>"
+        replace: "{{ lookup('ansible.builtin.env', 'NODE_05') }}"
+
+    - name: Reload nginx
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: reloaded
