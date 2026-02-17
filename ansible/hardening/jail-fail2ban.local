@@ -3,6 +3,10 @@ banaction = iptables
 banaction_allports = iptables[type=allports]
 #IP 196 is for OVH KVM
 ignoreip = <IP> 127.0.0.1 196.0.0.0/8
+backend = systemd
+maxretry = 5
+findtime = 10m
+bantime = 24h
 
 [sshd]
 backend = systemd
@@ -13,3 +17,44 @@ findtime = 10m
 maxretry = 4
 mode = aggressive
 enabled = true
+
+[nginx-badbots]
+enabled = true
+port = http,https
+logpath = /var/log/nginx/*access*.log
+maxretry = 2
+findtime = 10m
+bantime = 48h
+
+[nginx-botsearch]
+enabled = true
+port = http,https
+logpath = /var/log/nginx/*access*.log
+maxretry = 2
+findtime = 10m
+bantime = 48h
+
+[nginx-limit-req]
+enabled = true
+port = http,https
+logpath = /var/log/nginx/*error*.log
+maxretry = 15
+findtime = 5m
+bantime = 24h
+
+[nginx-exploit]
+enabled = true
+port = http,https
+filter = nginx-exploit
+logpath = /var/log/nginx/*access*.log
+maxretry = 2
+findtime = 15m
+bantime = 72h
+
+[recidive]
+enabled = true
+logpath = /var/log/fail2ban.log
+banaction = iptables-allports
+findtime = 1d
+bantime = 7d
+maxretry = 5

@@ -76,11 +76,16 @@
         src: jail-fail2ban.local
         dest: /etc/fail2ban/jail.d/jail-fail2ban.local
 
+    - name: Copy nginx exploit filter for fail2ban
+      ansible.builtin.copy:
+        src: nginx-exploit.conf
+        dest: /etc/fail2ban/filter.d/nginx-exploit.conf
+
     - name: Change IP whitelist
       ansible.builtin.replace:
         path: /etc/fail2ban/jail.d/jail-fail2ban.local
         regexp: '<IP>'
-        replace: "Port {{ lookup('env', 'IP') }}"
+        replace: "{{ lookup('env', 'IP') }}"
 
     - name: Change ssh port in jail config file
       ansible.builtin.replace:
