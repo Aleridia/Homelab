@@ -21,6 +21,7 @@ enabled = true
 [nginx-badbots]
 enabled = true
 port = http,https
+filter = nginx-badbots
 logpath = /var/log/nginx/*access*.log
 maxretry = 2
 findtime = 10m
@@ -29,6 +30,7 @@ bantime = 48h
 [nginx-botsearch]
 enabled = true
 port = http,https
+filter = nginx-botsearch
 logpath = /var/log/nginx/*access*.log
 maxretry = 2
 findtime = 10m
@@ -37,6 +39,7 @@ bantime = 48h
 [nginx-limit-req]
 enabled = true
 port = http,https
+filter = nginx-limit-req
 logpath = /var/log/nginx/*error*.log
 maxretry = 15
 findtime = 5m
