@@ -54,6 +54,33 @@ maxretry = 2
 findtime = 15m
 bantime = 72h
 
+[nginx-stream-unknown-sni]
+enabled = true
+port = https
+filter = nginx-stream-unknown-sni
+logpath = /var/log/nginx/stream-access.log
+maxretry = 6
+findtime = 10m
+bantime = 24h
+
+[nginx-stream-limit-conn]
+enabled = true
+port = https
+filter = nginx-stream-limit-conn
+logpath = /var/log/nginx/stream-error.log
+maxretry = 6
+findtime = 5m
+bantime = 24h
+
+[nginx-stream-keycloak-bruteforce]
+enabled = true
+port = https
+filter = nginx-stream-keycloak-bruteforce
+logpath = /var/log/nginx/stream-access.log
+maxretry = 120
+findtime = 1m
+bantime = 2h
+
 [recidive]
 enabled = true
 logpath = /var/log/fail2ban.log
