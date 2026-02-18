@@ -76,10 +76,19 @@
         src: jail-fail2ban.local
         dest: /etc/fail2ban/jail.d/jail-fail2ban.local
 
-    - name: Copy nginx exploit filter for fail2ban
+    - name: Copy nginx fail2ban filters
       ansible.builtin.copy:
-        src: nginx-exploit.conf
-        dest: /etc/fail2ban/filter.d/nginx-exploit.conf
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+      loop:
+        - src: fail2ban-nginx/nginx-exploit.conf
+          dest: /etc/fail2ban/filter.d/nginx-exploit.conf
+        - src: fail2ban-nginx/nginx-badbots.conf
+          dest: /etc/fail2ban/filter.d/nginx-badbots.conf
+        - src: fail2ban-nginx/nginx-botsearch.conf
+          dest: /etc/fail2ban/filter.d/nginx-botsearch.conf
+        - src: fail2ban-nginx/nginx-limit-req.conf
+          dest: /etc/fail2ban/filter.d/nginx-limit-req.conf
 
     - name: Change IP whitelist
       ansible.builtin.replace:
