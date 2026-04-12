@@ -7,4 +7,4 @@ data:
   use-forwarded-headers: "true"
   forwarded-for-header: "X-Forwarded-For"
   #Used for seafile
-  proxy-body-size: 0
+  proxy-body-size: "0"
