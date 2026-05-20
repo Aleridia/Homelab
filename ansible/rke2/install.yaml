@@ -72,6 +72,22 @@
         src: ../resources/config-server2.yaml
         dest: /etc/rancher/rke2/config.yaml
 
+    - name: Ensure RKE2 manifests directory exists
+      ansible.builtin.file:
+        path: /var/lib/rancher/rke2/server/manifests
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Deploy Traefik HelmChartConfig (final state, nginx-compat provider)
+      ansible.builtin.copy:
+        src: ../resources/rke2-traefik-config.yaml
+        dest: /var/lib/rancher/rke2/server/manifests/rke2-traefik-config.yaml
+        owner: root
+        group: root
+        mode: "0644"
+
     - name: Script install
       ansible.builtin.shell: curl -sfL https://get.rke2.io | sh -
 

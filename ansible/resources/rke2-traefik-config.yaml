@@ -1,0 +1,35 @@
+# Customizes the Traefik chart deployed by RKE2 when
+# `ingress-controller: traefik` is set in /etc/rancher/rke2/config.yaml.
+#
+# The kubernetesIngressNginx provider lets Traefik consume Ingress
+# resources that still use `ingressClassName: nginx` and the
+# `nginx.ingress.kubernetes.io/*` annotations, so no application
+# manifests need to change. See:
+#   https://docs.rke2.io/reference/ingress_migration
+#   https://doc.traefik.io/traefik/migrate/nginx-to-traefik/
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rke2-traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      web:
+        hostPort: 80
+      websecure:
+        hostPort: 443
+    providers:
+      kubernetesIngressNginx:
+        enabled: true
+---
+# IngressClass `nginx` (controller k8s.io/ingress-nginx) was previously
+# owned by rke2-ingress-nginx. Traefik's kubernetesIngressNginx provider
+# matches on this controller name but the chart does not create the
+# resource itself, so we declare it here for the auto-deploy controller.
+apiVersion: networking.k8s.io/v1
+kind: IngressClass
+metadata:
+  name: nginx
+spec:
+  controller: k8s.io/ingress-nginx

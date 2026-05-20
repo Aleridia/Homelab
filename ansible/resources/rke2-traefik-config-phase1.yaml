@@ -1,0 +1,23 @@
+# Phase 1 (dual-controller) Traefik HelmChartConfig.
+# Traefik runs on hostPort 8000/8443 alongside ingress-nginx (still on 80/443).
+# The kubernetesIngressNginx provider is bound to a dedicated migration class
+# so it never claims live `ingressClassName: nginx` resources during testing.
+#
+# Source: https://docs.rke2.io/reference/ingress_migration
+apiVersion: helm.cattle.io/v1
+kind: HelmChartConfig
+metadata:
+  name: rke2-traefik
+  namespace: kube-system
+spec:
+  valuesContent: |-
+    ports:
+      web:
+        hostPort: 8000
+      websecure:
+        hostPort: 8443
+    providers:
+      kubernetesIngressNginx:
+        enabled: true
+        ingressClass: "rke2-ingress-nginx-migration"
+        controllerClass: "rke2.cattle.io/ingress-nginx-migration"
