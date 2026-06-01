@@ -163,7 +163,16 @@
     - name: Apply cert-manager crd
       ansible.builtin.shell: kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v"{{ lookup('env', 'CERTMANAGER_VERSION') }}"/cert-manager.crds.yaml
     - name: Install cert-manager chart
-      ansible.builtin.shell: helm install cert-manager jetstack/cert-manager --namespace cert-manager --create-namespace
+      # extraArgs force the DNS-01 self-check to use public authoritative
+      # resolvers instead of CoreDNS. Without this, CoreDNS negative-caches
+      # the not-yet-created _acme-challenge TXT and challenges sit in
+      # "Presented challenge using DNS-01 challenge mechanism" for ~5 min
+      # before validation succeeds.
+      ansible.builtin.shell: >-
+        helm install cert-manager jetstack/cert-manager
+        --namespace cert-manager --create-namespace
+        --set "extraArgs[0]=--dns01-recursive-nameservers-only=true"
+        --set "extraArgs[1]=--dns01-recursive-nameservers=1.1.1.1:53\,8.8.8.8:53"
     - name: Pause
       ansible.builtin.pause:
         seconds: 60
