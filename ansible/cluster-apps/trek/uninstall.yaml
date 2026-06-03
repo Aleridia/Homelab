@@ -1,0 +1,9 @@
+- name: Uninstall TREK
+  hosts: localhost
+  tasks:
+    - name: Uninstall TREK chart
+      kubernetes.core.helm:
+        name: "trek"
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+        state: absent
+        wait: true

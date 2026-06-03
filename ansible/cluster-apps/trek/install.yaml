@@ -1,0 +1,27 @@
+- name: Setup installation
+  hosts: localhost
+  tasks:
+
+    - name: Clone the TREK helm chart repo
+      ansible.builtin.git:
+        repo: 'https://github.com/mauriceboe/TREK'
+        dest: /tmp/trek
+        version: main
+
+    - name: Create the namespace
+      kubernetes.core.k8s:
+        name: "{{ lookup('env', 'NAMESPACE') }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    - name: Install TREK from the cloned chart
+      kubernetes.core.helm:
+        name: "trek"
+        chart_ref: /tmp/trek/charts/trek
+        release_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+        state: present
+        create_namespace: true
+        values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
+      tags:
+        - install

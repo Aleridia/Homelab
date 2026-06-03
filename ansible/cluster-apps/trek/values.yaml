@@ -1,0 +1,85 @@
+env:
+  NODE_ENV: production
+  PORT: 3000
+  TZ: "Europe/Paris"
+  LOG_LEVEL: "info"
+  DEFAULT_LANGUAGE: "fr"
+
+  # Public base URL — must match the redirect URI registered in Keycloak.
+  APP_URL: "https://trek.{{ lookup('env', 'DOMAIN_NAME') }}"
+  ALLOWED_ORIGINS: "https://trek.{{ lookup('env', 'DOMAIN_NAME') }}"
+
+  # TLS is terminated at the ingress, so the app sits behind a trusted proxy.
+  FORCE_HTTPS: "true"
+  HSTS_INCLUDE_SUBDOMAINS: "false"
+  COOKIE_SECURE: "true"
+  TRUST_PROXY: "1"
+
+  # Allow reaching Immich and other internal services on RFC-1918 addresses.
+  ALLOW_INTERNAL_NETWORK: "true"
+
+  # Keycloak OIDC integration.
+  OIDC_ISSUER: "https://keycloak.{{ lookup('env', 'DOMAIN_NAME') }}/realms/{{ lookup('env', 'REALM_NAME') }}"
+  OIDC_DISCOVERY_URL: "https://keycloak.{{ lookup('env', 'DOMAIN_NAME') }}/realms/{{ lookup('env', 'REALM_NAME') }}/.well-known/openid-configuration"
+  OIDC_CLIENT_ID: "{{ lookup('env', 'TREK_CLIENT_ID') }}"
+  OIDC_DISPLAY_NAME: "Keycloak SSO"
+  OIDC_ONLY: "false"
+  OIDC_SCOPE: "openid email profile groups"
+  OIDC_ADMIN_CLAIM: "groups"
+  OIDC_ADMIN_VALUE: "/{{ lookup('env', 'KEYCLOAK_HOME_GROUP') }}"
+
+  DEMO_MODE: "false"
+  MCP_RATE_LIMIT: "300"
+  MCP_MAX_SESSION_PER_USER: "20"
+
+
+# Secret environment variables stored in a Kubernetes Secret.
+# JWT_SECRET is managed entirely by the server (auto-generated into the data PVC,
+# rotatable via the admin panel) — it is not configured here.
+secretEnv:
+  # At-rest encryption key for stored secrets (API keys, MFA, SMTP, OIDC, etc.).
+  # Generated once and preserved across upgrades by generateEncryptionKey below.
+  ENCRYPTION_KEY: ""
+  # Initial admin account — only used on first boot when no users exist yet.
+  # Left empty: a random password is generated and printed to the server log.
+  # First SSO login becomes admin anyway on a fresh instance.
+  ADMIN_EMAIL: ""
+  ADMIN_PASSWORD: ""
+  # OIDC client secret — paired with env.OIDC_ISSUER and env.OIDC_CLIENT_ID.
+  OIDC_CLIENT_SECRET: "{{ lookup('env', 'TREK_CLIENT_SECRET') }}"
+
+# Auto-generate ENCRYPTION_KEY on install and keep it across upgrades.
+generateEncryptionKey: true
+
+# If set, use an existing Kubernetes secret that contains ENCRYPTION_KEY
+existingSecret: ""
+existingSecretKey: ENCRYPTION_KEY
+
+persistence:
+  enabled: true
+  data:
+    size: 2Gi
+  uploads:
+    size: 10Gi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  hosts:
+    - host: "trek.{{ lookup('env', 'DOMAIN_NAME') }}"
+      paths:
+        - /
+  tls:
+    - secretName: trek-tls
+      hosts:
+        - "trek.{{ lookup('env', 'DOMAIN_NAME') }}"
