@@ -1,0 +1,22 @@
+# Cloudflare Origin CA issuer (CLUSTER-SCOPED). cert-manager uses this to
+# auto-issue and auto-renew Cloudflare Origin CA certs for any Ingress in the
+# cluster — a direct API call, no ACME challenge.
+#
+# Cluster-scoped: ONE ClusterOriginIssuer serves every namespace. Apps point their
+# Ingress at it by name (no per-namespace issuer, no per-namespace token copy).
+#
+# Token resolution: a ClusterOriginIssuer reads its API-token Secret from the
+# controller's `--cluster-resource-namespace`, which defaults to the namespace the
+# controller runs in — `origin-ca-issuer` (see ../README.md). Create that Secret
+# from secret.example.yaml.
+apiVersion: cert-manager.k8s.cloudflare.com/v1
+kind: ClusterOriginIssuer
+metadata:
+  name: origin-ca-issuer
+spec:
+  # ECC keys: smaller/faster. Use OriginRSA if you specifically need RSA.
+  requestType: OriginECC
+  auth:
+    tokenRef:
+      name: cloudflare-origin-ca-token
+      key: key

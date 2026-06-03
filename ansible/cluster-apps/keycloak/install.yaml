@@ -7,6 +7,8 @@
     hostname: "{{ lookup('env', 'DOMAIN_NAME') }}"
     keycloak_admin_user: "{{ lookup('env', 'KEYCLOAK_ADMIN_USERNAME') }}"
     keycloak_admin_password: "{{ lookup('env', 'KEYCLOAK_ADMIN_PASSWORD') }}"
+    keycloak_postgres_password: "{{ lookup('env', 'KEYCLOAK_POSTGRES_PASSWORD') }}"
+    keycloak_postgres_user: "{{ lookup('env', 'KEYCLOAK_POSTGRES_USER') }}"
 
   tasks:
     - name: Install Keycloak

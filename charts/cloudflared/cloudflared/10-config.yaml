@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudflared-config
+  namespace: cloudflare
+data:
+  config.yaml: |
+    # Locally-managed tunnel config (the public allowlist lives in git, not the
+    # dashboard). The `tunnel:` value is the UUID printed by
+    # `cloudflared tunnel create <name>` (see ../README.md).
+    tunnel: <TUNNEL_UUID>
+    credentials-file: /etc/cloudflared/creds/credentials.json
+
+    # cloudflared exposes /ready and metrics here (used by the probes below).
+    metrics: 0.0.0.0:2000
+
+    # The ingress list IS the public surface. Only hostnames named here are
+    # reachable from the internet; the final catch-all 404 means anything else
+    # has no route in through the tunnel. Add one block per app you expose —
+    # all of them can share this single tunnel.
+    ingress:
+      # ---- Example: route one public hostname to the in-cluster Traefik. ----
+      # Duplicate this block (changing hostname + originServerName) for each app.
+      - hostname: app.example.com
+        # The Traefik HTTPS entrypoint. VERIFY the Service name:
+        #   kubectl -n kube-system get svc | grep -i traefik
+        # (often "traefik"; on RKE2 typically "rke2-traefik").
+        service: https://rke2-traefik.kube-system.svc.cluster.local:443
+        originRequest:
+          # SNI sent to Traefik so it serves the cert for this host and routes by it.
+          originServerName: app.example.com
+          # The cloudflared → Traefik hop stays inside the cluster, so we encrypt
+          # it but don't validate the cert here (keeps setup simple). The public
+          # browser → Cloudflare leg is still Full (strict).
+          # To also validate this hop: remove noTLSVerify, mount the Cloudflare
+          # Origin CA root, and set `caPool: /etc/cloudflared/origin-ca/root.pem`.
+          noTLSVerify: true
+      - service: http_status:404

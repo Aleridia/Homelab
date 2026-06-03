@@ -349,8 +349,8 @@ postgresql:
     tag: 17.6.0-debian-12-r0
   auth:
     postgresPassword: ""
-    username: x
-    password: "x"
+    username: "{{ keycloak_postgres_user | mandatory }}"
+    password: "{{ keycloak_postgres_password | mandatory }}"
     database: bitnami_keycloak
     existingSecret: ""
     secretKeys:

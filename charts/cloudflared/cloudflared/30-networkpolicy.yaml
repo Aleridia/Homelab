@@ -1,0 +1,60 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: cloudflared
+  namespace: cloudflare
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: cloudflared
+  # Egress-only policy: cloudflared dials out and has no inbound Service. Ingress
+  # is left unrestricted so kubelet health probes (port 2000) are never blocked.
+  policyTypes:
+    - Egress
+  egress:
+    # DNS via CoreDNS.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # In-cluster hop to Traefik (the only origin cloudflared talks to).
+    # NOTE: the port here is Traefik's POD container port (websecure = 8443), NOT
+    # the Service port 443. Canal/Calico enforces egress AFTER kube-proxy DNATs
+    # the ClusterIP:443 to PodIP:8443, so the rule must match the post-DNAT port.
+    # Verify with: kubectl -n kube-system get svc rke2-traefik -o yaml (targetPort).
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: rke2-traefik
+      ports:
+        - port: 8443
+          protocol: TCP
+    # Outbound to the Cloudflare edge (QUIC 7844 / fallback TCP 7844 + 443).
+    # Public internet only — cluster/LAN/metadata ranges excluded.
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16
+              - 100.64.0.0/10
+      ports:
+        - port: 7844
+          protocol: UDP
+        - port: 7844
+          protocol: TCP
+        - port: 443
+          protocol: TCP
