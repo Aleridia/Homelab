@@ -243,7 +243,7 @@ ingress:
   ##     path: /
   ##
   extraHosts:
-    - name: <DOMAIN_NAME>
+    - name: "{{ keycloak_admin_hostname | mandatory }}"
       path: /
 
   ## @param ingress.extraPaths Any additional arbitrary paths that may need to be added to the ingress under the main host.
@@ -264,8 +264,8 @@ ingress:
   ##
   extraTls:
     - hosts:
-      - <DOMAIN_NAME>
-      secretName: <DOMAIN_NAME>-tls
+      - "{{ keycloak_admin_hostname | mandatory }}"
+      secretName: "{{ keycloak_admin_hostname | mandatory }}"-tls
   ## @param ingress.extraRules Additional rules to be covered with this ingress record
   ## ref: https://kubernetes.io/docs/concepts/services-networking/ingress/#ingress-rules
   ## e.g:
