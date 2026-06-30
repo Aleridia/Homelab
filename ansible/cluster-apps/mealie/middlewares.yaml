@@ -1,0 +1,48 @@
+# Traefik middlewares replacing the nginx rate-limit annotations that used to
+# guard the Mealie API ingresses (restrict-api and restrict-api-create).
+# Referenced from values.yaml via the
+#   traefik.ingress.kubernetes.io/router.middlewares
+# annotation as "<namespace>-<name>@kubernetescrd".
+#
+# nginx limit-rps -> rateLimit.average (req/s)
+# nginx limit-burst-multiplier -> rateLimit.burst = rps * multiplier
+# nginx limit-connections -> inFlightReq.amount (concurrent in-flight requests)
+apiVersion: v1
+kind: List
+items:
+  # restrict-api : rps 5, burst 15, connections 10
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: mealie-api-ratelimit
+      namespace: "{{ mealie_namespace }}"
+    spec:
+      rateLimit:
+        average: 5
+        burst: 15
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: mealie-api-inflight
+      namespace: "{{ mealie_namespace }}"
+    spec:
+      inFlightReq:
+        amount: 10
+  # restrict-api-create : rps 1, burst 2, connections 3
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: mealie-apicreate-ratelimit
+      namespace: "{{ mealie_namespace }}"
+    spec:
+      rateLimit:
+        average: 1
+        burst: 2
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: mealie-apicreate-inflight
+      namespace: "{{ mealie_namespace }}"
+    spec:
+      inFlightReq:
+        amount: 3

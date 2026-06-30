@@ -8,7 +8,7 @@ service:
   enabled: true
 ingress:
   enabled: true
-  ingressClassName: "nginx"
+  ingressClassName: "traefik"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
   hosts:

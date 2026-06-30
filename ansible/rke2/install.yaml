@@ -177,7 +177,7 @@
       ansible.builtin.pause:
         seconds: 60
     - name: Install Rancher chart
-      ansible.builtin.shell: helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname={{ lookup('env', 'RANCHER_ADDRESS') }} --set replicas=1 --set bootstrapPassword={{ lookup('env', 'BOOTSTRAP_PASSWORD') }}
+      ansible.builtin.shell: helm install rancher rancher-latest/rancher --namespace cattle-system --set hostname={{ lookup('env', 'RANCHER_ADDRESS') }} --set ingress.ingressClassName=traefik --set replicas=1 --set bootstrapPassword={{ lookup('env', 'BOOTSTRAP_PASSWORD') }}
     - name : Install SMB drivers
       ansible.builtin.shell: kubectl apply -f https://raw.githubusercontent.com/kubernetes-csi/csi-driver-smb/master/deploy/install-driver.yaml
 

@@ -6,7 +6,7 @@ metadata:
   name: vaultwarden
   namespace: "{{ vaultwarden_namespace | mandatory }}"
 spec:
-  ingressClassName: nginx
+  ingressClassName: traefik
   tls:
     - hosts:
         - "{{ host | mandatory }}"

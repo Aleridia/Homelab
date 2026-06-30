@@ -16,7 +16,7 @@ ingress:
   enabled: true
 
   # -- The ingress class that should be used
-  ingressClassName: "nginx"
+  ingressClassName: "traefik"
 
   # -- The url to use for the ingress reverse proxy to point at this pms instance
   url: "{{ plex_full_hostname | mandatory }}"

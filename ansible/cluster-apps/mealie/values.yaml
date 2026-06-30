@@ -77,7 +77,7 @@ ingress:
     namespace: "{{ mealie_namespace | mandatory }}"
     enabled: true
     required: true
-    ingressClassName: "nginx"
+    ingressClassName: "traefik"
     annotations:
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
     tls:
@@ -97,11 +97,11 @@ ingress:
     namespace: "{{ mealie_namespace | mandatory }}"
     enabled: true
     required: true
-    ingressClassName: "nginx"
+    ingressClassName: "traefik"
     annotations:
-      nginx.ingress.kubernetes.io/limit-rps: "5"
-      nginx.ingress.kubernetes.io/limit-burst-multiplier: "3"
-      nginx.ingress.kubernetes.io/limit-connections: "10"
+      # Traefik equivalent of nginx limit-rps:5 / burst-multiplier:3 (=burst 15) /
+      # limit-connections:10. Middlewares defined in middlewares.yaml.
+      traefik.ingress.kubernetes.io/router.middlewares: "{{ mealie_namespace }}-mealie-api-ratelimit@kubernetescrd,{{ mealie_namespace }}-mealie-api-inflight@kubernetescrd"
     tls:
       - hosts: 
           - "{{ mealie_hostname | mandatory }}"
@@ -119,11 +119,11 @@ ingress:
     namespace: "{{ mealie_namespace | mandatory }}"
     enabled: true
     required: true
-    ingressClassName: "nginx"
+    ingressClassName: "traefik"
     annotations:
-      nginx.ingress.kubernetes.io/limit-rps: "1"
-      nginx.ingress.kubernetes.io/limit-burst-multiplier: "2"
-      nginx.ingress.kubernetes.io/limit-connections: "3"
+      # Traefik equivalent of nginx limit-rps:1 / burst-multiplier:2 (=burst 2) /
+      # limit-connections:3. Middlewares defined in middlewares.yaml.
+      traefik.ingress.kubernetes.io/router.middlewares: "{{ mealie_namespace }}-mealie-apicreate-ratelimit@kubernetescrd,{{ mealie_namespace }}-mealie-apicreate-inflight@kubernetescrd"
     tls:
       - hosts: 
           - "{{ mealie_hostname | mandatory }}"

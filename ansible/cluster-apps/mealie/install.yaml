@@ -35,6 +35,15 @@
     tags:
       - install
 
+  - name: Install Traefik rate-limit middlewares for the Mealie API ingresses
+    vars:
+      mealie_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+    kubernetes.core.k8s:
+      state: present
+      definition: "{{ lookup('template', 'middlewares.yaml') | from_yaml }}"
+    tags:
+      - install
+
   - name : Install the secret for Mealie offline bring API
     vars:
       bring_username: "{{ lookup('env', 'BRING_USERNAME') }}"
