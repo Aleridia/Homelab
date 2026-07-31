@@ -5,6 +5,8 @@ To deploy it automatically use `ansible-playbook install.yaml`
 
 Else use `helm upgrade --install --create-namespace keycloak -f values.yaml oci://registry-1.docker.io/bitnamicharts/keycloak` and replace ansible fields in the values.yaml.
 
+If redirection fails, use this address : <KC_ADDRESS>/admin/master/console/
+
 ## Configuration
 ### Config map header
 I use a config map to make nginx pass the headers.
