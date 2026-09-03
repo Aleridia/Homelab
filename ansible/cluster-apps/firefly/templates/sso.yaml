@@ -1,0 +1,66 @@
+# Glue between Traefik, oauth2-proxy and one protected app. Applied once per
+# host (Firefly III, then the data importer), selected by `proxy_name`.
+#
+#   browser ──> Traefik ──(forwardAuth)──> oauth2-proxy ──> Keycloak
+#                  │                            │
+#                  │                            └─ 202 + X-Auth-Request-* headers
+#                  └──> app (with those headers copied onto the request)
+#
+# The app's own ingress is rendered by its Helm chart (see values.yaml); it
+# carries the router.middlewares annotation pointing at the Middleware below.
+apiVersion: v1
+kind: List
+items:
+  # Runs on every request to the app. Traefik calls oauth2-proxy's `/` endpoint,
+  # which is backed by `static://202`:
+  #   - session valid   -> 202, request continues to the app
+  #   - no session      -> 302 to Keycloak, handed back to the browser
+  - apiVersion: traefik.io/v1alpha1
+    kind: Middleware
+    metadata:
+      name: "{{ proxy_name | mandatory }}-oauth2-auth"
+      namespace: "{{ firefly_namespace | mandatory }}"
+    spec:
+      forwardAuth:
+        address: "http://{{ proxy_name | mandatory }}-oauth2-proxy.{{ firefly_namespace | mandatory }}.svc.cluster.local:80/"
+        # Forwards X-Forwarded-Proto/Host/Uri so oauth2-proxy can rebuild the
+        # public URL to return to after login.
+        trustForwardHeader: true
+        # Copied from the auth response onto the request the app receives.
+        # Firefly III reads X-Auth-Request-Email via AUTHENTICATION_GUARD_HEADER;
+        # the importer ignores them and is simply gated on the 202.
+        authResponseHeaders:
+          - X-Auth-Request-User
+          - X-Auth-Request-Email
+          - X-Auth-Request-Preferred-Username
+
+  # The OAuth2 dance itself (/oauth2/start, /oauth2/callback, /oauth2/sign_out)
+  # must NOT go through the middleware above, or the callback could never
+  # complete. Traefik prefers the longer PathPrefix, so this wins over the
+  # chart's `/` rule.
+  #
+  # No cert-manager annotation here on purpose: the certificate is requested by
+  # the app's ingress, and two Ingresses claiming the same secret would fight
+  # over it. This one only reads the result.
+  - apiVersion: networking.k8s.io/v1
+    kind: Ingress
+    metadata:
+      name: "{{ proxy_name | mandatory }}-oauth2"
+      namespace: "{{ firefly_namespace | mandatory }}"
+    spec:
+      ingressClassName: traefik
+      tls:
+        - hosts:
+            - "{{ proxy_hostname | mandatory }}"
+          secretName: "{{ proxy_tls_secret | mandatory }}"
+      rules:
+        - host: "{{ proxy_hostname | mandatory }}"
+          http:
+            paths:
+              - path: /oauth2
+                pathType: Prefix
+                backend:
+                  service:
+                    name: "{{ proxy_name | mandatory }}-oauth2-proxy"
+                    port:
+                      number: 80

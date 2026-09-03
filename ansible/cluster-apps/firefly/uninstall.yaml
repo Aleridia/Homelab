@@ -1,0 +1,65 @@
+- name: Uninstall Firefly III
+  hosts: localhost
+  vars:
+    firefly_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+    firefly_hostname: "firefly.{{ lookup('env', 'DOMAIN_NAME') }}"
+    firefly_tls_secret: "firefly-tls"
+    importer_hostname: "firefly-import.{{ lookup('env', 'DOMAIN_NAME') }}"
+    importer_tls_secret: "firefly-importer-tls"
+
+  tasks:
+    - name: Remove the forwardAuth middleware and /oauth2 ingress for the importer
+      vars:
+        proxy_name: "firefly-importer"
+        proxy_hostname: "{{ importer_hostname }}"
+        proxy_tls_secret: "{{ importer_tls_secret }}"
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('template', 'templates/sso.yaml') | from_yaml }}"
+
+    - name: Remove the forwardAuth middleware and /oauth2 ingress for Firefly III
+      vars:
+        proxy_name: "firefly"
+        proxy_hostname: "{{ firefly_hostname }}"
+        proxy_tls_secret: "{{ firefly_tls_secret }}"
+      kubernetes.core.k8s:
+        state: absent
+        definition: "{{ lookup('template', 'templates/sso.yaml') | from_yaml }}"
+
+    - name: Uninstall oauth2-proxy for the data importer
+      kubernetes.core.helm:
+        name: "firefly-importer-oauth2-proxy"
+        release_namespace: "{{ firefly_namespace }}"
+        state: absent
+        wait: true
+
+    - name: Uninstall oauth2-proxy for Firefly III
+      kubernetes.core.helm:
+        name: "firefly-oauth2-proxy"
+        release_namespace: "{{ firefly_namespace }}"
+        state: absent
+        wait: true
+
+    # Runs the chart's pre-delete hook, which takes a final pg_dump onto the
+    # backup PVC before the database goes away.
+    - name: Uninstall the Firefly III stack
+      kubernetes.core.helm:
+        name: "firefly"
+        release_namespace: "{{ firefly_namespace }}"
+        state: absent
+        wait: true
+
+    # Created outside Helm, so `helm uninstall` leaves them behind.
+    - name: Remove the secrets created outside Helm
+      kubernetes.core.k8s:
+        state: absent
+        api_version: v1
+        kind: Secret
+        name: "{{ item }}"
+        namespace: "{{ firefly_namespace }}"
+      loop:
+        - firefly-db-config
+        - firefly-importer-token
+
+    # The PVCs (firefly, firefly-db-storage-claim, firefly-db-backup-storage-claim)
+    # and the firefly-app-key secret are intentionally kept — see README.md.

@@ -1,0 +1,129 @@
+- name: Install Firefly III
+  hosts: localhost
+  vars:
+    firefly_namespace: "{{ lookup('env', 'NAMESPACE') }}"
+    domain_name: "{{ lookup('env', 'DOMAIN_NAME') }}"
+    firefly_hostname: "firefly.{{ lookup('env', 'DOMAIN_NAME') }}"
+    firefly_tls_secret: "firefly-tls"
+    importer_hostname: "firefly-import.{{ lookup('env', 'DOMAIN_NAME') }}"
+    importer_tls_secret: "firefly-importer-tls"
+    site_owner: "{{ lookup('env', 'EMAIL') }}"
+    realm_name: "{{ lookup('env', 'REALM_NAME') }}"
+    admin_group: "{{ lookup('env', 'KEYCLOAK_HOME_GROUP') }}"
+    app_key: "{{ lookup('env', 'FIREFLY_APP_KEY') }}"
+    db_user: "{{ lookup('env', 'FIREFLY_DB_USER') }}"
+    db_password: "{{ lookup('env', 'FIREFLY_DB_PASSWORD') }}"
+    cron_token: "{{ lookup('env', 'FIREFLY_CRON_TOKEN') }}"
+    importer_access_token: "{{ lookup('env', 'FIREFLY_IMPORTER_ACCESS_TOKEN') }}"
+
+  tasks:
+    - name: Add the Firefly III helm repo
+      kubernetes.core.helm_repository:
+        name: firefly-iii
+        repo_url: "https://firefly-iii.github.io/kubernetes/"
+
+    - name: Add the oauth2-proxy helm repo
+      kubernetes.core.helm_repository:
+        name: oauth2-proxy
+        repo_url: "https://oauth2-proxy.github.io/manifests"
+
+    - name: Create the namespace
+      kubernetes.core.k8s:
+        name: "{{ firefly_namespace }}"
+        api_version: v1
+        kind: Namespace
+        state: present
+
+    # Both secrets must exist before the chart: the postgres and importer
+    # deployments mount them by name.
+    - name: Create the PostgreSQL configuration secret
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('template', 'templates/db-secret.yaml') | from_yaml }}"
+      tags:
+        - install
+
+    - name: Create the data importer access token secret
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('template', 'templates/importer-secret.yaml') | from_yaml }}"
+      tags:
+        - install
+        - importer
+
+    - name: Install the Firefly III stack
+      kubernetes.core.helm:
+        name: "firefly"
+        chart_ref: firefly-iii/firefly-iii-stack
+        chart_version: "0.10.2"
+        release_namespace: "{{ firefly_namespace }}"
+        state: present
+        create_namespace: true
+        values: "{{ lookup('template', 'values.yaml') | from_yaml }}"
+      tags:
+        - install
+
+    # Neither app authenticates users on its own — Firefly III has no OIDC and
+    # the importer has no login at all — so each gets an oauth2-proxy release in
+    # front of it. See README.md.
+    - name: Install oauth2-proxy for Firefly III
+      vars:
+        proxy_hostname: "{{ firefly_hostname }}"
+        proxy_cookie_name: "_firefly_oauth2"
+        client_id: "{{ lookup('env', 'FIREFLY_CLIENT_ID') }}"
+        client_secret: "{{ lookup('env', 'FIREFLY_CLIENT_SECRET') }}"
+        cookie_secret: "{{ lookup('env', 'FIREFLY_OAUTH2_COOKIE_SECRET') }}"
+      kubernetes.core.helm:
+        name: "firefly-oauth2-proxy"
+        chart_ref: oauth2-proxy/oauth2-proxy
+        chart_version: "10.7.0"
+        release_namespace: "{{ firefly_namespace }}"
+        state: present
+        values: "{{ lookup('template', 'oauth2-proxy-values.yaml') | from_yaml }}"
+      tags:
+        - install
+        - sso
+
+    - name: Install oauth2-proxy for the data importer
+      vars:
+        proxy_hostname: "{{ importer_hostname }}"
+        proxy_cookie_name: "_firefly_importer_oauth2"
+        client_id: "{{ lookup('env', 'FIREFLY_IMPORTER_CLIENT_ID') }}"
+        client_secret: "{{ lookup('env', 'FIREFLY_IMPORTER_CLIENT_SECRET') }}"
+        cookie_secret: "{{ lookup('env', 'FIREFLY_IMPORTER_OAUTH2_COOKIE_SECRET') }}"
+      kubernetes.core.helm:
+        name: "firefly-importer-oauth2-proxy"
+        chart_ref: oauth2-proxy/oauth2-proxy
+        chart_version: "10.7.0"
+        release_namespace: "{{ firefly_namespace }}"
+        state: present
+        values: "{{ lookup('template', 'oauth2-proxy-values.yaml') | from_yaml }}"
+      tags:
+        - install
+        - sso
+        - importer
+
+    - name: Install the forwardAuth middleware and /oauth2 ingress for Firefly III
+      vars:
+        proxy_name: "firefly"
+        proxy_hostname: "{{ firefly_hostname }}"
+        proxy_tls_secret: "{{ firefly_tls_secret }}"
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('template', 'templates/sso.yaml') | from_yaml }}"
+      tags:
+        - install
+        - sso
+
+    - name: Install the forwardAuth middleware and /oauth2 ingress for the importer
+      vars:
+        proxy_name: "firefly-importer"
+        proxy_hostname: "{{ importer_hostname }}"
+        proxy_tls_secret: "{{ importer_tls_secret }}"
+      kubernetes.core.k8s:
+        state: present
+        definition: "{{ lookup('template', 'templates/sso.yaml') | from_yaml }}"
+      tags:
+        - install
+        - sso
+        - importer

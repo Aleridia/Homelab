@@ -1,0 +1,91 @@
+# Values for the oauth2-proxy chart. Rendered as a Jinja template by
+# install.yaml, once per protected host: Firefly III itself and the data
+# importer each get their own release, Keycloak client and cookie.
+#
+# Neither app can authenticate a user on its own — Firefly III has no OIDC
+# support, and the importer has no login at all — so this is what actually talks
+# to Keycloak. It is wired as a Traefik forwardAuth backend (templates/sso.yaml),
+# using the "static upstream" variant of the upstream recipe: oauth2-proxy
+# answers `/` with a bare 202 for an authenticated session and with a 302 to
+# Keycloak otherwise, which means Traefik can hand the redirect straight back to
+# the browser and no `errors` middleware is needed.
+# https://oauth2-proxy.github.io/oauth2-proxy/configuration/integrations/traefik/
+
+config:
+  clientID: "{{ client_id | mandatory }}"
+  clientSecret: "{{ client_secret | mandatory }}"
+  # Signs/encrypts the session cookie. Exactly 32 bytes — see README.md.
+  cookieSecret: "{{ cookie_secret | mandatory }}"
+  # Distinct per host, so a session on one does not collide with the other.
+  cookieName: "{{ proxy_cookie_name | mandatory }}"
+
+  # Group membership is what restricts access (see allowed-group below), so any
+  # e-mail domain the realm hands out is acceptable here.
+  emailDomains:
+    - "*"
+
+  # Nothing is proxied through: an authenticated request to `/` gets a 202 and
+  # Traefik then routes the real request to the app directly.
+  upstreams:
+    - "static://202"
+
+extraArgs:
+  provider: "keycloak-oidc"
+  provider-display-name: "Keycloak"
+  oidc-issuer-url: "https://keycloak.{{ domain_name | mandatory }}/realms/{{ realm_name | mandatory }}"
+  redirect-url: "https://{{ proxy_hostname | mandatory }}/oauth2/callback"
+  scope: "openid email profile groups"
+  code-challenge-method: "S256"
+
+  # Only members of this Keycloak group may reach the app. Requires the client to
+  # expose the `groups` scope — the same mapper TREK and Mealie rely on. Drop
+  # this line to let every realm user in.
+  # Singular: `allowed_groups` is the config-file key, `--allowed-group` is the
+  # flag, and this chart renders extraArgs as flags.
+  allowed-group: "/{{ admin_group | mandatory }}"
+
+  # Trust Traefik's X-Forwarded-* headers. Mandatory for forwardAuth: without it
+  # oauth2-proxy would build the post-login redirect from its own ClusterIP
+  # service name instead of the public hostname.
+  reverse-proxy: "true"
+  # Emit X-Auth-Request-User / -Email / -Preferred-Username on the response, which
+  # is what the middleware's authResponseHeaders copies onto the request the app
+  # finally sees.
+  set-xauthrequest: "true"
+  pass-authorization-header: "false"
+  pass-access-token: "false"
+
+  cookie-secure: "true"
+  cookie-domain: "{{ proxy_hostname | mandatory }}"
+  # The redirect target lives on a different host than the ClusterIP oauth2-proxy
+  # is reached on, so it has to be allow-listed explicitly.
+  whitelist-domain: "{{ proxy_hostname | mandatory }}"
+  # Renew from the Keycloak refresh token well inside the realm's default 30 min
+  # SSO idle timeout, so a session stays alive as long as the browser is in use.
+  cookie-refresh: "15m"
+  cookie-expire: "168h"
+
+  # Keycloak is the only provider — skip the intermediate "Sign in with..." page.
+  skip-provider-button: "true"
+
+service:
+  type: ClusterIP
+  portNumber: 80
+
+resources:
+  requests:
+    cpu: 10m
+    memory: 32Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+# Single replica in a homelab: a PDB with minAvailable 1 (the chart default)
+# would block node drains.
+podDisruptionBudget:
+  enabled: false
+
+# Traefik reaches the service directly; the /oauth2 callback route is a separate
+# Ingress in templates/sso.yaml so it can share the app's certificate.
+ingress:
+  enabled: false

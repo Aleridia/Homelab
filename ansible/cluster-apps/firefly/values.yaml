@@ -1,0 +1,203 @@
+# Values for the `firefly-iii-stack` umbrella chart (firefly-db + firefly-iii +
+# importer). Rendered as a Jinja template by install.yaml.
+#
+# Names are pinned with fullnameOverride so the generated objects are readable
+# (`firefly`, `firefly-db`) instead of the chart's default `<release>-<chart>`
+# concatenation — the Traefik middleware and the /oauth2 ingress reference these
+# names, so do not change them without updating templates/sso.yaml.
+
+# ---------------------------------------------------------------------------
+# PostgreSQL
+# ---------------------------------------------------------------------------
+firefly-db:
+  enabled: true
+  fullnameOverride: "firefly-db"
+
+  image:
+    repository: postgres
+    # The chart still defaults to 10-alpine, which has been EOL since 2022.
+    # Safe to pick freely here because this is a fresh database; changing the
+    # major version *after* the first install needs a pg_upgrade / dump+restore.
+    # Stay below 18: that release moved PGDATA and would break the subPath mount.
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+
+  # All connection settings (including the password) come from a Secret created
+  # by install.yaml. Without this the chart would put PGPASSWORD and
+  # POSTGRES_PASSWORD in a plain ConfigMap, and would fall back to
+  # POSTGRES_HOST_AUTH_METHOD=trust (any pod able to reach :5432 gets in).
+  configs:
+    existingSecret: "firefly-db-config"
+    BACKUP_ENABLED: true
+    # Only used to seed a *new* database from /var/lib/backup/firefly.sql.
+    # Left off so the post-install hook job is not rendered on a normal install.
+    RESTORE_ENABLED: false
+
+  storage:
+    # Empty = cluster default StorageClass (Longhorn).
+    class: ~
+    accessModes: ReadWriteOnce
+    dataSize: 5Gi
+    existingClaim: ""
+
+  # Nightly pg_dump kept on its own PVC, oldest dumps pruned past 80% usage.
+  backup:
+    destination: pvc
+    pvc:
+      class: ~
+      accessModes: ReadWriteOnce
+      dataSize: 5Gi
+      existingClaim: ""
+  backupSchedule: "0 3 * * *"
+
+# ---------------------------------------------------------------------------
+# Firefly III
+# ---------------------------------------------------------------------------
+firefly-iii:
+  enabled: true
+  fullnameOverride: "firefly"
+
+  # Uploaded attachments.
+  persistence:
+    enabled: true
+    storageClassName: ""
+    accessModes: ReadWriteOnce
+    storage: 5Gi
+    existingClaim: ""
+
+  config:
+    env:
+      APP_ENV: "production"
+      APP_URL: "https://{{ firefly_hostname | mandatory }}"
+      SITE_OWNER: "{{ site_owner | mandatory }}"
+      TZ: "Europe/Paris"
+      DEFAULT_LANGUAGE: "fr_FR"
+      DEFAULT_LOCALE: "equal"
+
+      # TLS is terminated at Traefik, so the app always sits behind a proxy.
+      TRUSTED_PROXIES: "**"
+
+      DB_CONNECTION: "pgsql"
+      DB_HOST: "firefly-db"
+      DB_PORT: "5432"
+      DB_DATABASE: "firefly"
+      DB_USERNAME: "{{ db_user | mandatory }}"
+
+      # Keycloak SSO. Firefly III has no native OIDC support, so authentication
+      # is delegated to oauth2-proxy via Traefik forwardAuth (templates/sso.yaml)
+      # and Firefly trusts the identity it asserts.
+      #
+      # The header name here is the PHP $_SERVER key, not the HTTP header name:
+      # oauth2-proxy sends `X-Auth-Request-Email`, PHP exposes it as
+      # `HTTP_X_AUTH_REQUEST_EMAIL`. See
+      # https://docs.firefly-iii.org/how-to/firefly-iii/advanced/authentication/
+      #
+      # WARNING: with this guard Firefly III performs no checks of its own — no
+      # password, no MFA. Everything hinges on the forwardAuth middleware being
+      # attached to every route that reaches the app.
+      AUTHENTICATION_GUARD: "remote_user_guard"
+      AUTHENTICATION_GUARD_HEADER: "HTTP_X_AUTH_REQUEST_EMAIL"
+
+  secrets:
+    # Laravel encryption key, exactly 32 characters. The chart can generate one
+    # and keep it across upgrades, but it is set explicitly so the value lives in
+    # .env and can be restored alongside a database dump — losing it makes the
+    # encrypted columns unreadable.
+    appKey: "{{ app_key | mandatory }}"
+    env:
+      DB_PASSWORD: "{{ db_password | mandatory }}"
+      # Guards /api/v1/cron/<token>, hit by the CronJob below.
+      STATIC_CRON_TOKEN: "{{ cron_token | mandatory }}"
+      # Chart default placeholder; not a Firefly III variable. Dropped so it
+      # does not end up in the Secret.
+      APP_PASSWORD: null
+
+  # Recurring transactions, bill reminders and auto-budgets need a daily poke.
+  # The job curls the ClusterIP service directly, so it bypasses oauth2-proxy.
+  cronjob:
+    enabled: true
+    schedule: "0 3 * * *"
+    auth:
+      # Reads STATIC_CRON_TOKEN back out of the Secret rendered from secrets.env
+      # above (that Secret is named after fullnameOverride).
+      existingSecret: "firefly"
+      secretKey: "STATIC_CRON_TOKEN"
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+  ingress:
+    enabled: true
+    className: "traefik"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      # Every request to `/` is checked against oauth2-proxy first. The
+      # `<namespace>-<name>@kubernetescrd` form is how Traefik addresses a
+      # Middleware CRD from an Ingress annotation.
+      traefik.ingress.kubernetes.io/router.middlewares: "{{ firefly_namespace | mandatory }}-firefly-oauth2-auth@kubernetescrd"
+    # This chart takes plain hostnames here and always serves them at path `/`.
+    hosts:
+      - "{{ firefly_hostname | mandatory }}"
+    tls:
+      - secretName: "{{ firefly_tls_secret | mandatory }}"
+        hosts:
+          - "{{ firefly_hostname | mandatory }}"
+
+# ---------------------------------------------------------------------------
+# Data importer
+# ---------------------------------------------------------------------------
+# Second web UI, on its own hostname, behind its own oauth2-proxy release and
+# Keycloak client. It has NO authentication of its own — the only secret in its
+# config guards the unattended /autoimport endpoints, which stay disabled — so
+# the forwardAuth middleware is the only thing standing between the internet and
+# "write transactions into Firefly III". Never expose it without one.
+importer:
+  enabled: true
+  fullnameOverride: "firefly-importer"
+
+  fireflyiii:
+    # In-cluster address, deliberately NOT the public one: this hop bypasses
+    # oauth2-proxy, which matters because Firefly III's /api sits behind the auth
+    # middleware and would reject the importer's token-authenticated calls.
+    url: "http://firefly:80"
+    # Public URL, used only to build links back to Firefly III in the UI.
+    vanityUrl: "https://{{ firefly_hostname | mandatory }}"
+    auth:
+      # Secret created by install.yaml; the chart always reads key `accessToken`.
+      existingSecret: "firefly-importer-token"
+
+  trustedProxies: "**"
+
+  config:
+    env:
+      TZ: "Europe/Paris"
+      IGNORE_DUPLICATE_ERRORS: "false"
+    # The chart otherwise mounts a placeholder test.txt into the configurations
+    # directory. Drop pre-baked import configs here if you want them shipped.
+    files: []
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  ingress:
+    enabled: true
+    className: "traefik"
+    annotations:
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      traefik.ingress.kubernetes.io/router.middlewares: "{{ firefly_namespace | mandatory }}-firefly-importer-oauth2-auth@kubernetescrd"
+    hosts:
+      - "{{ importer_hostname | mandatory }}"
+    tls:
+      - secretName: "{{ importer_tls_secret | mandatory }}"
+        hosts:
+          - "{{ importer_hostname | mandatory }}"

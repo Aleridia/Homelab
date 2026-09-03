@@ -4,3 +4,7 @@ config*.yaml
 config*.py
 secret.yaml
 *.ovpn
+
+CLAUDE.md
+AGENTS.md
+**/immich/**
