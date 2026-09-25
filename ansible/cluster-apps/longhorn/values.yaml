@@ -1,0 +1,32 @@
+defaultSettings:
+  # Backups are pushed to the Synology NAS over NFS. The export must allow the
+  # node subnet and keep root unsquashed -- Longhorn writes the backupstore
+  # lock files as root, and silently reports the target unavailable otherwise.
+  backupTarget: "nfs://{{ storage_server_ip }}:{{ nfs_server_path_backup }}"
+  backupTargetCredentialSecret: ""
+
+  # Longhorn's data path shares the root filesystem with the OS, containerd
+  # images and the logs on every node -- there is no dedicated disk. This
+  # percentage is what stays out of Longhorn's reach: 21% of a ~233 GiB SSD
+  # leaves ~50 GiB for the system.
+  storageReservedPercentageForDefaultDisk: 21
+
+  # Real usage sits around 5% of what the volumes provision (8 GiB actual for
+  # 157 GiB of specs), so the 1:1 default rejects scheduling long before the
+  # disks are anywhere near full. 200% doubles the quota per disk; the real
+  # floor is storageMinimalAvailablePercentage below, which stops scheduling on
+  # actual free space rather than on the sum of the specs.
+  storageOverProvisioningPercentage: 200
+
+  # The safety net that makes the over-provisioning above sane: Longhorn stops
+  # scheduling on a disk once it drops under this share of genuinely free
+  # space. Longhorn's own default, pinned here because it is load-bearing now.
+  storageMinimalAvailablePercentage: 25
+
+  # Hard anti-affinity: a volume's replicas must land on distinct nodes. With 3
+  # nodes and 3 replicas that means exactly one replica per node, so a drain
+  # has nowhere to rebuild -- hence the matching drain policy below, which
+  # refuses the drain instead of silently leaving a volume with no replica.
+  replicaSoftAntiAffinity: false
+  nodeDrainPolicy: block-if-contains-last-replica
+  defaultReplicaCount: 3

@@ -24,17 +24,91 @@
         name: open-iscsi
 
 - name: Install longhorn
-  become: true
-  become_user: root
-  hosts: first_server_node
-  environment:
-    KUBECONFIG: /etc/rancher/rke2/rke2.yaml
+  hosts: localhost
+  vars:
+    storage_server_ip: "{{ lookup('env', 'STORAGE_SERVER_IP') }}"
+    nfs_server_path_backup: "{{ lookup('env', 'NFS_SERVER_PATH_BACKUP') }}"
   tasks:
-    - name: Add longhorn repo
-      ansible.builtin.shell: helm repo add longhorn https://charts.longhorn.io
+    - name: Install Longhorn
+      block:
+        - name: Add longhorn repo
+          ansible.builtin.shell: helm repo add longhorn https://charts.longhorn.io
 
-    - name: Update helm repos
-      ansible.builtin.shell: helm repo update
+        - name: Update helm repos
+          ansible.builtin.shell: helm repo update
 
-    - name: Install longhorn
-      ansible.builtin.shell: helm install longhorn longhorn/longhorn --namespace longhorn-system --create-namespace
+        - name: Create temporary chart directory
+          ansible.builtin.tempfile:
+            state: directory
+            suffix: longhorn-chart
+          register: longhorn_chart_dir
+
+        - name: Pull Longhorn chart
+          ansible.builtin.shell: "helm pull longhorn/longhorn --untar --untardir {{ longhorn_chart_dir.path }}"
+
+        - name: Create temporary Longhorn values file
+          ansible.builtin.tempfile:
+            state: file
+            suffix: longhorn-values.yaml
+          register: longhorn_values_file
+
+        - name: Render Longhorn values file
+          ansible.builtin.template:
+            src: values.yaml
+            dest: "{{ longhorn_values_file.path }}"
+            mode: "0600"
+
+        - name: Install Longhorn from pulled chart
+          kubernetes.core.helm:
+            name: longhorn
+            chart_ref: "{{ longhorn_chart_dir.path }}/longhorn"
+            release_namespace: longhorn-system
+            state: present
+            create_namespace: true
+            values_files:
+              - "{{ longhorn_values_file.path }}"
+
+        # defaultSettings only seeds settings the cluster has not customised
+        # yet, so the backup target is asserted on the CR as well -- on an
+        # existing install that CR is what Longhorn actually reads.
+        - name: Point the default BackupTarget at the NAS
+          kubernetes.core.k8s:
+            state: present
+            api_version: longhorn.io/v1beta2
+            kind: BackupTarget
+            name: default
+            namespace: longhorn-system
+            definition:
+              spec:
+                backupTargetURL: "nfs://{{ storage_server_ip }}:{{ nfs_server_path_backup }}"
+                credentialSecret: ""
+                pollInterval: 5m0s
+
+        - name: Schedule the daily backup job
+          kubernetes.core.k8s:
+            state: present
+            src: recurringjob-backup.yaml
+
+        # Superseded by backup-daily. Despite its name it ran on the "default"
+        # group -- every volume, not just vaultwarden -- and its task was
+        # "snapshot", which never leaves the node holding the data.
+        - name: Remove the legacy backup-vaultwarden recurring job
+          kubernetes.core.k8s:
+            state: absent
+            api_version: longhorn.io/v1beta2
+            kind: RecurringJob
+            name: backup-vaultwarden
+            namespace: longhorn-system
+
+      always:
+        - name: Remove temporary Longhorn values file
+          ansible.builtin.file:
+            path: "{{ longhorn_values_file.path }}"
+            state: absent
+          when: longhorn_values_file.path is defined
+
+        - name: Remove temporary chart directory
+          ansible.builtin.file:
+            path: "{{ longhorn_chart_dir.path }}"
+            state: absent
+          when: longhorn_chart_dir.path is defined

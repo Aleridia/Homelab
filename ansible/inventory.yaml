@@ -6,10 +6,6 @@ nodes:
       ansible_host: "{{ lookup('env', 'NODE_02') }}"
     node_03:
       ansible_host: "{{ lookup('env', 'NODE_03') }}"
-    node_04:
-      ansible_host: "{{ lookup('env', 'NODE_04') }}"    
-    node_05:
-      ansible_host: "{{ lookup('env', 'NODE_05') }}"
   vars:
     ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
     ansible_ssh_private_key_file: "{{ lookup('env', 'NODES_KEY') }}"
@@ -31,11 +27,7 @@ server_nodes:
     ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
     ansible_ssh_private_key_file: "{{ lookup('env', 'NODES_KEY') }}"
 worker_nodes:
-  hosts:
-    node_04:
-      ansible_host: "{{ lookup('env', 'NODE_04') }}"
-    node_05:
-      ansible_host: "{{ lookup('env', 'NODE_05') }}"
+  hosts: {}
   vars:
     ansible_user: "{{ lookup('env', 'ANSIBLE_USER') }}"
     ansible_ssh_private_key_file: "{{ lookup('env', 'NODES_KEY') }}"

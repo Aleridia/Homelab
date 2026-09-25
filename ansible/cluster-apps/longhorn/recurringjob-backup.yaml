@@ -1,0 +1,22 @@
+# Daily off-cluster backup of every volume in the "default" group -- a volume
+# with no recurring-job label belongs to that group, so this covers the whole
+# cluster, vaultwarden included.
+#
+# This is the only copy that survives losing a node: snapshots live inside the
+# replica directories, on the same disks as the data they protect.
+#
+# spec.name is required by Longhorn's validating webhook and must match
+# metadata.name; the job is rejected without it.
+apiVersion: longhorn.io/v1beta2
+kind: RecurringJob
+metadata:
+  name: backup-daily
+  namespace: longhorn-system
+spec:
+  name: backup-daily
+  cron: "0 2 * * *"
+  task: backup
+  groups:
+    - default
+  retain: 7
+  concurrency: 2

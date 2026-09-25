@@ -2,4 +2,11 @@ auth:
   password: {{ redis_password | mandatory }}
 
 replica:
-  replicaCount: 1
+  # Aucune app ne lit le replica : Seafile pointe REDIS_HOST sur
+  # redis-seafile-master, et c'est le seul consommateur. Le replica a passe des
+  # mois en CrashLoopBackOff sans que rien ne s'en apercoive -- son AOF avait ete
+  # ecrit par un Redis plus recent que l'image du chart apres un downgrade, d'ou
+  # "Can't handle RDB format version 14". Il coutait un volume Longhorn de 8 Gio
+  # sauvegarde chaque nuit pour rien. Le remettre a 1 suppose de regler d'abord
+  # la compatibilite des versions Bitnami.
+  replicaCount: 0

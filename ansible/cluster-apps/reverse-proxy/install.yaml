@@ -113,11 +113,15 @@
         - /etc/nginx/stream.d/k8s-sni.conf
         - /etc/nginx/conf.d/redirect-80.conf
 
-    - name: Replace NODE_05 placeholder in stream config
+    - name: Replace node placeholders in stream config
       ansible.builtin.replace:
         path: /etc/nginx/stream.d/k8s-sni.conf
-        regexp: "<NODE_05>"
-        replace: "{{ lookup('ansible.builtin.env', 'NODE_05') }}"
+        regexp: "<{{ item }}>"
+        replace: "{{ lookup('ansible.builtin.env', item) }}"
+      loop:
+        - NODE_01
+        - NODE_02
+        - NODE_03
 
     - name: Reload nginx
       ansible.builtin.systemd_service:
